@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "2d65lrKns0jSOhO6T5WwEyKA6EZfONGZRqtGfJGcWNU=",
+  "Source": "apel-music-api",
+  "BasePath": "_content/apel-music-api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
