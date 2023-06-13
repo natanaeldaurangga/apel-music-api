@@ -25,7 +25,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost("Registration")]
-        public async Task<IActionResult> Register(RegistrationRequest request)
+        public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -38,11 +38,11 @@ namespace ApelMusic.Controllers
             }
 
             // Mengambil base url dari project
-            var verificationUrl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/VerifyEmail/";
+            var verificationUrl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/api/Auth/VerifyEmail/";
 
             try
             {
-                var token = await _authService.RegisterNewUser(request);
+                var token = await _authService.RegisterNewUserAsync(request);
 
                 if (!string.IsNullOrEmpty(token) && !string.IsNullOrWhiteSpace(token))
                 {
@@ -74,7 +74,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("/VerifyEmail/{token}")]
+        [HttpGet("VerifyEmail/{token}")]
         public async Task<IActionResult> VerifyUser([FromRoute] string token)
         {
             try
@@ -94,6 +94,12 @@ namespace ApelMusic.Controllers
                 // return StatusCode(StatusCodes.Status500InternalServerError);
                 throw;
             }
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            return Ok(request);
         }
 
         [HttpGet]

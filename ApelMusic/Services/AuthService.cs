@@ -82,7 +82,7 @@ namespace ApelMusic.Services
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
         }
 
-        public async Task<string?> RegisterNewUser(RegistrationRequest request)
+        public async Task<string?> RegisterNewUserAsync(RegistrationRequest request)
         {
             CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
 
@@ -104,11 +104,30 @@ namespace ApelMusic.Services
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
+
                 var result = await _userRepo.InsertUserAsync(user);
                 _logger.LogInformation("Verification token: ", verificationToken);
                 if (result) return verificationToken;
             }
             return null;
+        }
+
+        public async Task<User?> LoginAsync(LoginRequest request)
+        {
+            var users = await _userRepo.FindUserByEmailAsync(request.Email);
+            if (users.Count < 1) return null;
+            var user = users[0];
+
+            if (!VerifyPasswordHash(request.Password, user!.PasswordHash, user!.PasswordSalt))
+            {
+                return null;
+            }
+
+            string token = GenerateJwtToken(user);
+
+            var refreshToken = GenerateRefreshToken();
+            // return 
+            return user;
         }
 
         public async Task<bool> VerifyUserAsync(string token)

@@ -38,17 +38,18 @@ CREATE TABLE roles (
 GO
 
 CREATE TABLE users (
-	id UNIQUEIDENTIFIER PRIMARY KEY,
-	full_name VARCHAR(100),
-	email VARCHAR(100) UNIQUE,
-	password_hash varbinary(32),
-	password_salt varbinary(64),
-	role_id INT NOT NULL,
-	verfication_token VARCHAR(255),
-	verfied_at DATETIME DEFAULT NULL,
-	created_at DATETIME DEFAULT GETDATE(),
-	updated_at DATETIME DEFAULT GETDATE(),
-	inactive DATETIME DEFAULT NULL
+    id UNIQUEIDENTIFIER PRIMARY KEY,
+    full_name VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    password_hash varbinary(32),
+    password_salt varbinary(64),
+    refresh_token VARCHAR(64),
+    role_id UNIQUEIDENTIFIER NOT NULL,
+    verification_token VARCHAR(255),
+    verfied_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    inactive DATETIME DEFAULT NULL
 );
 GO
 
@@ -112,4 +113,6 @@ SELECT u.id as user_id,
 	   r.inactive as role_inactive
 FROM users u 
 LEFT JOIN roles r ON u.role_id = r.id;
+
+UPDATE users SET verfied_at = GETDATE() WHERE verification_token = '';
 
