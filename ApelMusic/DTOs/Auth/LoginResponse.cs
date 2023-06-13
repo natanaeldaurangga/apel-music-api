@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using ApelMusic.Entities;
 
 namespace ApelMusic.DTOs.Auth
 {
@@ -15,5 +16,8 @@ namespace ApelMusic.DTOs.Auth
 
         [JsonIgnore]
         public RefreshTokenResponse? RefreshToken { get; set; }
+
+        [JsonIgnore]
+        public User? User { get; set; }
     }
 }

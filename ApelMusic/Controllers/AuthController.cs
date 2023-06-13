@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ApelMusic.DTOs.Auth;
 using ApelMusic.Email;
 using ApelMusic.Email.TemplateModel;
+using ApelMusic.Entities;
 using ApelMusic.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,18 @@ namespace ApelMusic.Controllers
         {
             _authService = authService;
             _emailService = emailService;
+        }
+
+        private async Task<int> SetRefreshToken(RefreshTokenResponse newRefreshToken, User user)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = newRefreshToken.Expires
+            };
+
+            Response.Cookies.Append("refreshToken", newRefreshToken.Token!, cookieOptions);
+            return 1;
         }
 
         [HttpPost("Registration")]
@@ -99,7 +112,30 @@ namespace ApelMusic.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            return Ok(request);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var result = await _authService.LoginAsync(request);
+                if (result == null)
+                {
+                    return BadRequest("Username atau password salah.");
+                }
+
+                if (result.User!.VerifiedAt == null)
+                {
+                    return Unauthorized("Email anda belum diverifikasi, silahkan cek email anda.");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                // return StatusCode(StatusCodes.Status500InternalServerError);
+                throw;
+            }
         }
 
         [HttpGet]
@@ -115,6 +151,8 @@ namespace ApelMusic.Controllers
                 throw;
             }
         }
+
+        // TODO: Lanjut bikin reset password
 
     }
 }

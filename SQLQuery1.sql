@@ -53,7 +53,6 @@ CREATE TABLE users (
 );
 GO
 
-
 CREATE TABLE categories (
 	id UNIQUEIDENTIFIER PRIMARY KEY,
 	tag_name VARCHAR(50) NOT NULL,

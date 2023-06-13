@@ -25,10 +25,10 @@ namespace ApelMusic.Entities
         public string? RefreshToken { get; set; }
 
         [DataType(DataType.DateTime)]
-        public DateTime TokenCreated { get; set; }
+        public DateTime? TokenCreated { get; set; }
 
         [DataType(DataType.DateTime)]
-        public DateTime TokenExpires { get; set; }
+        public DateTime? TokenExpires { get; set; }
 
         public Guid? RoleId { get; set; }
 
@@ -39,5 +39,6 @@ namespace ApelMusic.Entities
 
         [DataType(DataType.DateTime)]
         public DateTime? VerifiedAt { get; set; }
+
     }
 }

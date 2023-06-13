@@ -80,14 +80,17 @@ namespace ApelMusic.Database.Migrations
             const string query = @"
                 CREATE TABLE users (
                     id UNIQUEIDENTIFIER PRIMARY KEY,
-                    full_name VARCHAR(100),
+                    full_name VARCHAR(100) NOT NULL,
                     email VARCHAR(100) UNIQUE,
-                    password_hash varbinary(32),
-                    password_salt varbinary(64),
-                    refresh_token VARCHAR(64),
+                    password_hash varbinary(32) NOT NULL,
+                    password_salt varbinary(64) NOT NULL,
+                    refresh_token VARCHAR(255) DEFAULT NULL,
+                    token_created DATETIME DEFAULT NULL,
+                    token_expires DATETIME DEFAULT NULL,
                     role_id UNIQUEIDENTIFIER NOT NULL,
                     verification_token VARCHAR(255),
-                    verfied_at DATETIME DEFAULT NULL,
+                    verified_at DATETIME DEFAULT NULL,
+                    reset_password_token VARCHAR(255) DEFAULT NULL,
                     created_at DATETIME DEFAULT GETDATE(),
                     updated_at DATETIME DEFAULT GETDATE(),
                     inactive DATETIME DEFAULT NULL

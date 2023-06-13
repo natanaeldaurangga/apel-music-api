@@ -1,8 +1,13 @@
+using System.Text;
 using ApelMusic.Database.Migrations;
 using ApelMusic.Database.Repositories;
 using ApelMusic.Database.Seeds;
 using ApelMusic.Email;
 using ApelMusic.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +38,50 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(nameo
 builder.Services.AddScoped<EmailService>();
 #endregion
 
+#region Konfigurasi JWT
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Description = "Standard Authorization header using the Bearer scheme (\"bearer {token}\")",
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
+
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+});
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ClockSkew = TimeSpan.Zero,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true, // INI HARUS TRUEEEEEE BIAR DI VALIDASI EXPIRATION TIME NYA NAELLLL
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ADMIN", policy => policy.RequireRole("ROLE_ADMIN"));
+    options.AddPolicy("USER", policy => policy.RequireRole("ROLE_USER"));
+});
+#endregion
+
+// builder.Services.AddCors(options => options.AddPolicy(name: "AddAllOrigins",
+//     builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+// ));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -44,6 +93,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

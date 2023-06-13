@@ -67,14 +67,12 @@ namespace ApelMusic.Services
 
         public static RefreshTokenResponse GenerateRefreshToken()
         {
-            var refreshToken = new RefreshTokenResponse
+            return new RefreshTokenResponse
             {
                 Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
                 Expires = DateTime.Now.AddDays(7),
                 CreatedAt = DateTime.Now
             };
-
-            return refreshToken;
         }
 
         private static string CreateRandomToken()
@@ -112,22 +110,32 @@ namespace ApelMusic.Services
             return null;
         }
 
-        public async Task<User?> LoginAsync(LoginRequest request)
+        public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
             var users = await _userRepo.FindUserByEmailAsync(request.Email);
-            if (users.Count < 1) return null;
+            if (users.Count < 1) return null; // JIka email tidak ditemukan
             var user = users[0];
 
-            if (!VerifyPasswordHash(request.Password, user!.PasswordHash, user!.PasswordSalt))
+            if (!VerifyPasswordHash(request.Password!, user.PasswordHash!, user.PasswordSalt!))
             {
-                return null;
+                return null; // Jika password salah
             }
 
             string token = GenerateJwtToken(user);
 
             var refreshToken = GenerateRefreshToken();
-            // return 
-            return user;
+
+            await _userRepo.UpdateRefreshTokenAsync(user.Id, refreshToken);
+
+            return new LoginResponse()
+            {
+                Id = user.Id,
+                Name = user.FullName,
+                Email = user.Email,
+                JwtToken = token,
+                RefreshToken = refreshToken,
+                User = user
+            };
         }
 
         public async Task<bool> VerifyUserAsync(string token)
