@@ -8,13 +8,13 @@ build_property.PlatformNeutralAssembly =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ApelMusic
 build_property.RootNamespace = ApelMusic
-build_property.ProjectDir = d:\CodingID\ProyekAkhir\apel-music-api\ApelMusic\
+build_property.ProjectDir = D:\CodingID\ProyekAkhir\apel-music-api\ApelMusic\
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = d:\CodingID\ProyekAkhir\apel-music-api\ApelMusic
+build_property.MSBuildProjectDirectory = D:\CodingID\ProyekAkhir\apel-music-api\ApelMusic
 build_property._RazorSourceGeneratorDebug = 
 
-[d:/CodingID/ProyekAkhir/apel-music-api/ApelMusic/Files/EmailTemplates/VerifyEmail.cshtml]
+[D:/CodingID/ProyekAkhir/apel-music-api/ApelMusic/Files/EmailTemplates/VerifyEmail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = RmlsZXNcRW1haWxUZW1wbGF0ZXNcVmVyaWZ5RW1haWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

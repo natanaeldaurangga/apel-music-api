@@ -14,9 +14,13 @@ namespace ApelMusic.Controllers
 
         private readonly RoleRepository _roleRepo;
 
-        public Test(RoleRepository roleRepo)
+        private readonly IWebHostEnvironment _env;
+
+        public Test(RoleRepository roleRepo, IWebHostEnvironment env)
         {
             _roleRepo = roleRepo;
+            _env = env;
+
         }
 
         [HttpGet]
@@ -32,6 +36,12 @@ namespace ApelMusic.Controllers
             {
                 return NotFound();
             }
+        }
+
+        [HttpGet("GetEnv")]
+        public async Task<IActionResult> GetEnv()
+        {
+            return Ok(_env.ContentRootPath);
         }
     }
 }

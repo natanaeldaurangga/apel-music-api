@@ -135,9 +135,43 @@ namespace ApelMusic.Database.Repositories
             cmd.Parameters.AddWithValue("@VerificationToken", user.VerificationToken);
             cmd.Parameters.AddWithValue("@CreatedAt", user.CreatedAt);
             cmd.Parameters.AddWithValue("@UpdatedAt", user.UpdatedAt);
-            int rowAffected = await cmd.ExecuteNonQueryAsync();
-            _logger.LogInformation("row affected: {}", rowAffected);
-            return rowAffected;
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> VerifyUserTaskAsync(SqlConnection conn, SqlTransaction transaction, string token)
+        {
+            const string query = @"
+                UPDATE users SET verfied_at = @VerifiedAt WHERE verification_token = @Token;
+            ";
+
+            SqlCommand cmd = new(query, conn, transaction);
+            cmd.Parameters.AddWithValue("@VerifiedAt", DateTime.Now);
+            cmd.Parameters.AddWithValue("@Token", token);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<bool> VerifyUserAsync(string token)
+        {
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                _ = await VerifyUserTaskAsync(conn, transaction, token);
+                transaction.Commit();
+                return true;
+            }
+            catch (System.Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+                await conn.CloseAsync();
+            }
         }
 
         public async Task<bool> InsertUserAsync(User user)

@@ -111,6 +111,11 @@ namespace ApelMusic.Services
             return null;
         }
 
+        public async Task<bool> VerifyUserAsync(string token)
+        {
+            return await _userRepo.VerifyUserAsync(token);
+        }
+
         public async Task<List<User>> FindAllUserAsync()
         {
             return await _userRepo.FindAllUserAsync();

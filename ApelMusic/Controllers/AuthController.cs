@@ -38,33 +38,60 @@ namespace ApelMusic.Controllers
             }
 
             // Mengambil base url dari project
-            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            var verificationUrl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/VerifyEmail/";
 
             try
             {
-                var result = await _authService.RegisterNewUser(request);
+                var token = await _authService.RegisterNewUser(request);
 
-                var emailVerification = new EmailVerificationModel()
+                if (!string.IsNullOrEmpty(token) && !string.IsNullOrWhiteSpace(token))
                 {
-                    EmailAddress = request.Email,
-                    Url = baseUrl,
-                    VerificationToken = result
-                };
+                    var emailVerification = new EmailVerificationModel()
+                    {
+                        EmailAddress = request.Email,
+                        Url = verificationUrl + token,
+                        VerificationToken = token
+                    };
 
-                var emailAddresses = new List<string>
+                    var emailAddresses = new List<string>
                     {
                         request.Email!
                     };
 
-                var model = new EmailModel(emailAddresses, "Verifikasi Email",
-                    _emailService.GetEmailTemplate("VerifyEmail", emailVerification)
-                );
+                    var model = new EmailModel(emailAddresses, "Verifikasi Email",
+                        _emailService.GetEmailTemplate("VerifyEmail", emailVerification)
+                    );
+                    // TODO: Lanjut bikin login
+                    bool sended = await _emailService.SendAsync(model, new CancellationToken());
 
-                return Ok("Silahkan cek email anda untuk melakukan verifikasi");
-
+                    return Ok("Akun anda sudah terdaftar, Silahkan cek email anda untuk melakukan verifikasi");
+                }
+                return NotFound();
             }
             catch (System.Exception)
             {
+                throw;
+            }
+        }
+
+        [HttpGet("/VerifyEmail/{token}")]
+        public async Task<IActionResult> VerifyUser([FromRoute] string token)
+        {
+            try
+            {
+                bool result = await _authService.VerifyUserAsync(token);
+                if (result)
+                {
+                    return Ok("Email berhasil diverifikasi silahkan login.");
+                }
+                else
+                {
+                    return BadRequest("Token sudah expire.");
+                }
+            }
+            catch (System.Exception)
+            {
+                // return StatusCode(StatusCodes.Status500InternalServerError);
                 throw;
             }
         }
