@@ -80,6 +80,29 @@ namespace ApelMusic.Services
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
         }
 
+        #region SERVICE RESET PASSWORD
+        public async Task<string?> ResetPasswordRequestAsync(ResetPasswordEmailRequest request)
+        {
+            try
+            {
+                var resetToken = CreateRandomToken();
+                _ = await _userRepo.UpdateResetTokenAsync(request.Email!, resetToken);
+                return resetToken;
+            }
+            catch (Exception)
+            {
+                // return null;
+                throw;
+            }
+        }
+
+        public async Task<int> ResetPasswordAsync(string token, ResetPasswordRequest request)
+        {
+            CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
+            return await _userRepo.ResetPasswordAsync(token, passwordHash, passwordSalt);
+        }
+        #endregion
+
         public async Task<string?> RegisterNewUserAsync(RegistrationRequest request)
         {
             CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);

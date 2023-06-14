@@ -25,12 +25,7 @@ namespace ApelMusic.Database.Repositories
             this.ConnectionString = _config.GetConnectionString("DefaultConnection");
         }
 
-        private static async Task<int> ExecuteQueryAsync(SqlConnection conn, SqlTransaction transaction, string query)
-        {
-            SqlCommand cmd = new(query, conn, transaction);
-            return await cmd.ExecuteNonQueryAsync();
-        }
-
+        #region FIND USER
         // Method multi fungsi, kita bisa mencari user berdasarkan semua kolom yang ada di table user
         public async Task<List<User>> FindUserByAsync(string column = "", string value = "")
         {
@@ -49,6 +44,7 @@ namespace ApelMusic.Database.Repositories
                             password_salt, 
                             verification_token,
                             verified_at,
+                            reset_password_token,
                             r.id as role_id, 
                             r.name as role_name, 
                             u.created_at as user_created_at, 
@@ -91,7 +87,6 @@ namespace ApelMusic.Database.Repositories
                             Email = reader.GetString("email"),
                             PasswordHash = (byte[])reader["password_hash"],
                             PasswordSalt = (byte[])reader["password_salt"],
-                            VerificationToken = reader.GetString("verification_token"),
                             RoleId = reader.GetGuid("role_id"),
                             Role = new()
                             {
@@ -105,11 +100,31 @@ namespace ApelMusic.Database.Repositories
                         };
 
                         // Ngecek apakah user sudah verify email
-                        bool isVerifiedNull = !await reader.IsDBNullAsync(reader.GetOrdinal("verified_at"));
-
-                        if (isVerifiedNull)
+                        bool isVerified = !await reader.IsDBNullAsync(reader.GetOrdinal("verified_at"));
+                        if (isVerified)
                         {
                             user.VerifiedAt = reader.GetDateTime("verified_at");
+                        }
+
+                        // cek reset password token
+                        bool isResetTokenNull = await reader.IsDBNullAsync(reader.GetOrdinal("reset_password_token"));
+                        if (!isResetTokenNull)
+                        {
+                            user.ResetPasswordToken = reader.GetString("reset_password_token");
+                        }
+
+                        // cek verification token
+                        bool isVerificationTokenNull = await reader.IsDBNullAsync(reader.GetOrdinal("verification_token"));
+                        if (!isVerificationTokenNull)
+                        {
+                            user.VerificationToken = reader.GetString("verification_token");
+                        }
+
+                        // Ngecek apakah user active/inactive
+                        bool isActive = await reader.IsDBNullAsync(reader.GetOrdinal("user_inactive"));
+                        if (!isActive)
+                        {
+                            user.Inactive = reader.GetDateTime("user_inactive");
                         }
 
                         users.Add(user);
@@ -128,11 +143,95 @@ namespace ApelMusic.Database.Repositories
             return await FindUserByAsync();
         }
 
+        // Fungsi untuk find user by email
         public async Task<List<User>> FindUserByEmailAsync(string email)
         {
             return await FindUserByAsync("email", email);
         }
+        #endregion
 
+        #region RESET PASSWORD
+        public async Task<int> ResetPasswordTaskAsync(SqlConnection connection, SqlTransaction transaction, string token, byte[] passwordHash, byte[] passwordSalt)
+        {
+            const string query = @"
+                UPDATE users
+                SET password_hash = @PasswordHash,
+                    password_salt = @PasswordSalt,
+                    reset_password_token = NULL
+                WHERE reset_password_token = @ResetToken
+            ";
+
+            SqlCommand cmd = new(query, connection, transaction);
+            cmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
+            cmd.Parameters.AddWithValue("@PasswordSalt", passwordSalt);
+            cmd.Parameters.AddWithValue("@ResetToken", token);
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> ResetPasswordAsync(string token, byte[] passwordHash, byte[] passwordSalt)
+        {
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                _ = await ResetPasswordTaskAsync(conn, transaction, token, passwordHash, passwordSalt);
+                transaction.Commit();
+                return 1;
+            }
+            catch (System.Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+                await conn.CloseAsync();
+            }
+        }
+
+        // Fungsi untuk set reset token
+        public async Task<int> UpdateResetTokenTaskAsync(SqlConnection connection, SqlTransaction transaction, string email, string token)
+        {
+            const string query = @"
+                UPDATE users
+                SET reset_password_token = @ResetToken
+                WHERE email = @Email
+            ";
+
+            SqlCommand cmd = new(query, connection, transaction);
+            cmd.Parameters.AddWithValue("@ResetToken", token);
+            cmd.Parameters.AddWithValue("@Email", email);
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        // fungsi untuk mengeksekusi reset token
+        public async Task<int> UpdateResetTokenAsync(string email, string token)
+        {
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                _ = await UpdateResetTokenTaskAsync(conn, transaction, email, token);
+                transaction.Commit();
+                return 1;
+            }
+            catch (System.Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+                await conn.CloseAsync();
+            }
+        }
+        #endregion
+
+        #region REFRESH TOKEN
         public async Task<int> UpdateRefreshTaskTokenAsync(SqlConnection connection, SqlTransaction transaction, Guid userId, RefreshTokenResponse response)
         {
             const string query = @"
@@ -140,7 +239,7 @@ namespace ApelMusic.Database.Repositories
                 SET refresh_token = @RefreshToken,
                     token_created = @CreatedAt,
                     token_expires = @ExpiredAt,
-                    updated_at = @CreatedAt
+                    updated_at = GETDATE()
                 WHERE id = @Id;
             ";
 
@@ -174,13 +273,15 @@ namespace ApelMusic.Database.Repositories
                 await conn.CloseAsync();
             }
         }
+        #endregion
 
+        #region EMAIL VERIFICATION
         // Task Untuk Verify User
         public async Task<int> VerifyUserTaskAsync(SqlConnection conn, SqlTransaction transaction, string token)
         {
             // Pada query di bawah ini terdapat verified_at IS NULL, untuk mengecek apakah token sudah pernah diverifikasi sebelumnya
             const string query = @"
-                UPDATE users SET verified_at = @VerifiedAt WHERE verification_token = @Token AND verified_at IS NULL;
+                UPDATE users SET verified_at = @VerifiedAt, verification_token = NULL WHERE verification_token = @Token AND verified_at IS NULL;
             ";
 
             SqlCommand cmd = new(query, conn, transaction);
@@ -188,26 +289,6 @@ namespace ApelMusic.Database.Repositories
             cmd.Parameters.AddWithValue("@Token", token);
 
             return await cmd.ExecuteNonQueryAsync(); // Melihat jumlah row affected minimal 1 jika 0 maka tidak ada row affected
-        }
-
-        public async Task<int> InsertUserTaskAsync(SqlConnection conn, SqlTransaction transaction, User user)
-        {
-            const string query = @"
-                INSERT INTO users (id, full_name, email, password_hash, password_salt, role_id, verification_token, created_at, updated_at)
-                VALUES (@Id, @FullName, @Email, @PasswordHash, @PasswordSalt, @RoleId, @VerificationToken, @CreatedAt, @UpdatedAt);
-            ";
-
-            SqlCommand cmd = new(query, conn, transaction);
-            cmd.Parameters.AddWithValue("@Id", user.Id);
-            cmd.Parameters.AddWithValue("@FullName", user.FullName);
-            cmd.Parameters.AddWithValue("@Email", user.Email);
-            cmd.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
-            cmd.Parameters.AddWithValue("@PasswordSalt", user.PasswordSalt);
-            cmd.Parameters.AddWithValue("@RoleId", user.RoleId);
-            cmd.Parameters.AddWithValue("@VerificationToken", user.VerificationToken);
-            cmd.Parameters.AddWithValue("@CreatedAt", user.CreatedAt);
-            cmd.Parameters.AddWithValue("@UpdatedAt", user.UpdatedAt);
-            return await cmd.ExecuteNonQueryAsync();
         }
 
         // Eksekusi Task Verify User
@@ -233,6 +314,28 @@ namespace ApelMusic.Database.Repositories
                 await conn.CloseAsync();
             }
         }
+        #endregion
+
+        #region INSERT NEW USER
+        public async Task<int> InsertUserTaskAsync(SqlConnection conn, SqlTransaction transaction, User user)
+        {
+            const string query = @"
+                INSERT INTO users (id, full_name, email, password_hash, password_salt, role_id, verification_token, created_at, updated_at)
+                VALUES (@Id, @FullName, @Email, @PasswordHash, @PasswordSalt, @RoleId, @VerificationToken, @CreatedAt, @UpdatedAt);
+            ";
+
+            SqlCommand cmd = new(query, conn, transaction);
+            cmd.Parameters.AddWithValue("@Id", user.Id);
+            cmd.Parameters.AddWithValue("@FullName", user.FullName);
+            cmd.Parameters.AddWithValue("@Email", user.Email);
+            cmd.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+            cmd.Parameters.AddWithValue("@PasswordSalt", user.PasswordSalt);
+            cmd.Parameters.AddWithValue("@RoleId", user.RoleId);
+            cmd.Parameters.AddWithValue("@VerificationToken", user.VerificationToken);
+            cmd.Parameters.AddWithValue("@CreatedAt", user.CreatedAt);
+            cmd.Parameters.AddWithValue("@UpdatedAt", user.UpdatedAt);
+            return await cmd.ExecuteNonQueryAsync();
+        }
 
         public async Task<bool> InsertUserAsync(User user)
         {
@@ -256,6 +359,7 @@ namespace ApelMusic.Database.Repositories
                 await conn.CloseAsync();
             }
         }
+        #endregion
 
     }
 }

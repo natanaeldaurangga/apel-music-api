@@ -26,7 +26,7 @@ namespace ApelMusic.Services
             {
                 return _configuration.GetSection("Image:Default").Value;
             }
-            // TODO : Lanjut bikin controller untuk CRUD Image
+
             string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
             string filePath = Path.Combine(_env.ContentRootPath, _imagePath + fileName);
 

@@ -34,11 +34,14 @@ namespace ApelMusic.Entities
 
         public Role? Role { get; set; }
 
-        [MaxLength(32)]
+        [MaxLength(255)]
         public string? VerificationToken { get; set; }
 
         [DataType(DataType.DateTime)]
         public DateTime? VerifiedAt { get; set; }
+
+        [MaxLength(255)]
+        public string? ResetPasswordToken { get; set; }
 
     }
 }

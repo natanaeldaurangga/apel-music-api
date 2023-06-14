@@ -46,7 +46,6 @@ namespace ApelMusic.Controllers
             }
         }
 
-        // TODO: Bikin repo, service, sama controller buat user
         [HttpDelete]
         public async Task<IActionResult> DropAllTables()
         {

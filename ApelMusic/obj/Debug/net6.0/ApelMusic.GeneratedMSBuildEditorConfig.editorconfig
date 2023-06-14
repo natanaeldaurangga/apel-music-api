@@ -15,6 +15,10 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = D:\CodingID\ProyekAkhir\apel-music-api\ApelMusic
 build_property._RazorSourceGeneratorDebug = 
 
+[D:/CodingID/ProyekAkhir/apel-music-api/ApelMusic/Files/EmailTemplates/ResetPasswordEmail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = RmlsZXNcRW1haWxUZW1wbGF0ZXNcUmVzZXRQYXNzd29yZEVtYWlsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/CodingID/ProyekAkhir/apel-music-api/ApelMusic/Files/EmailTemplates/VerifyEmail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = RmlsZXNcRW1haWxUZW1wbGF0ZXNcVmVyaWZ5RW1haWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

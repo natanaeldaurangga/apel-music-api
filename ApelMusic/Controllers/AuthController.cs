@@ -74,7 +74,7 @@ namespace ApelMusic.Controllers
                     var model = new EmailModel(emailAddresses, "Verifikasi Email",
                         _emailService.GetEmailTemplate("VerifyEmail", emailVerification)
                     );
-                    // TODO: Lanjut bikin login
+
                     bool sended = await _emailService.SendAsync(model, new CancellationToken());
 
                     return Ok("Akun anda sudah terdaftar, Silahkan cek email anda untuk melakukan verifikasi");
@@ -138,6 +138,81 @@ namespace ApelMusic.Controllers
             }
         }
 
+        [HttpPost("RequestResetPassword")]
+        public async Task<IActionResult> RequestChangePassword([FromBody] ResetPasswordEmailRequest request)
+        {
+            bool isUserExist = await _authService.IsUserAlreadyUsed(request.Email!);
+            if (!isUserExist)
+            {
+                return BadRequest("Email belum terdaftar.");
+            }
+            var resetPasswordUrl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/api/Auth/GetResetPasswordToken/";
+
+            // CODE: Jika user sudah terdaftar kirimkan email yang berisi token reset password
+            try
+            {
+                var token = await _authService.ResetPasswordRequestAsync(request);
+                if (!string.IsNullOrEmpty(token) && !string.IsNullOrWhiteSpace(token))
+                {
+                    var resetPasswordModel = new EmailResetPasswordModel()
+                    {
+                        EmailAddress = request.Email,
+                        ResetPasswordUrl = resetPasswordUrl + token,
+                        ResetPasswordToken = token
+                    };
+
+                    var emailAddresses = new List<string>
+                    {
+                        request.Email!
+                    };
+
+                    var model = new EmailModel(emailAddresses, "Reset Password",
+                        _emailService.GetEmailTemplate("ResetPasswordEmail", resetPasswordModel)
+                    );
+
+                    bool sended = await _emailService.SendAsync(model, new CancellationToken());
+
+                    return Ok("Silahkan cek email anda");
+                }
+            }
+            catch (System.Exception)
+            {
+                // return StatusCode(StatusCodes.Status500InternalServerError);
+                throw;
+            }
+
+            return Ok("Silahkan cek email anda.");
+        }
+
+
+        // METHOD di bawah ini hanya percobaan
+        [HttpGet("GetResetPasswordToken/{token}")]
+        public async Task<IActionResult> TestGetPasswordToken([FromRoute] string token)
+        {
+            return Ok(token);
+        }
+
+        [HttpPost("ResetPassword/{token}")]
+        public async Task<IActionResult> ResetPassword([FromRoute] string token, [FromBody] ResetPasswordRequest request)
+        {
+            // CODE: Update password WHERE reset_token = token
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _ = await _authService.ResetPasswordAsync(token, request);
+                return Ok("Password berhasil diperbaharui");
+            }
+            catch (System.Exception)
+            {
+                // return StatusCode(StatusCodes.Status500InternalServerError);
+                throw;
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
@@ -152,7 +227,6 @@ namespace ApelMusic.Controllers
             }
         }
 
-        // TODO: Lanjut bikin reset password
 
     }
 }

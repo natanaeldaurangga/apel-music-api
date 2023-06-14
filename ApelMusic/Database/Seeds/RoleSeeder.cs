@@ -18,7 +18,6 @@ namespace ApelMusic.Database.Seeds
             _logger = logger;
         }
 
-        // TODO: Lanjut bikin seeders
         public async Task<int> Run()
         {
             try

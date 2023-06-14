@@ -99,7 +99,6 @@ namespace ApelMusic.Email
         public string LoadTemplate(string emailTemplate)
         {
             string baseDir = _environment.ContentRootPath;
-            // FIXME: Kenapa AppDomain malah mengarah ke bin, terus WebRootPath malah null
             string templateDir = Path.Combine(baseDir, "Files/EmailTemplates");
             string templatePath = Path.Combine(templateDir, $"{emailTemplate}.cshtml");
 
