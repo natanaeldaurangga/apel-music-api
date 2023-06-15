@@ -45,9 +45,11 @@ namespace ApelMusic.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_config.GetSection("Jwt:Key").Value);
 
-            var tokenDescriptor = new SecurityTokenDescriptor();
-            tokenDescriptor.Audience = _config.GetSection("Jwt:Audience").Value;
-            tokenDescriptor.Issuer = _config.GetSection("Jwt:Issuer").Value;
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Audience = _config.GetSection("Jwt:Audience").Value,
+                Issuer = _config.GetSection("Jwt:Issuer").Value
+            };
 
             var emailClaim = new Claim(ClaimTypes.Email, user.Email!);
             var roleClaim = new Claim(ClaimTypes.Role, user.Role!.Name!);
@@ -135,7 +137,7 @@ namespace ApelMusic.Services
 
         public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
-            var users = await _userRepo.FindUserByEmailAsync(request.Email);
+            var users = await _userRepo.FindUserByEmailAsync(request.Email!);
             if (users.Count < 1) return null; // JIka email tidak ditemukan
             var user = users[0];
 

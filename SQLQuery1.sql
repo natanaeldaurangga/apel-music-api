@@ -39,14 +39,17 @@ GO
 
 CREATE TABLE users (
     id UNIQUEIDENTIFIER PRIMARY KEY,
-    full_name VARCHAR(100),
+    full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE,
-    password_hash varbinary(32),
-    password_salt varbinary(64),
-    refresh_token VARCHAR(64),
+    password_hash varbinary(32) NOT NULL,
+    password_salt varbinary(64) NOT NULL,
+    refresh_token VARCHAR(255) DEFAULT NULL,
+    token_created DATETIME DEFAULT NULL,
+    token_expires DATETIME DEFAULT NULL,
     role_id UNIQUEIDENTIFIER NOT NULL,
     verification_token VARCHAR(255),
-    verfied_at DATETIME DEFAULT NULL,
+    verified_at DATETIME DEFAULT NULL,
+    reset_password_token VARCHAR(255) DEFAULT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
     inactive DATETIME DEFAULT NULL
@@ -54,28 +57,35 @@ CREATE TABLE users (
 GO
 
 CREATE TABLE categories (
-	id UNIQUEIDENTIFIER PRIMARY KEY,
-	tag_name VARCHAR(50) NOT NULL,
+	[id] UNIQUEIDENTIFIER PRIMARY KEY,
+	[tag_name] VARCHAR(50) NOT NULL,
 	[name] VARCHAR(50) NOT NULL,
-	image_path VARCHAR(255) NOT NULL,
-	category_description TEXT,
-	created_at DATETIME,
-	udpated_at DATETIME,
-	inactive DATETIME
+	[image] VARCHAR(255),
+	[banner_image] VARCHAR(255),
+	[category_description] TEXT,
+	[created_at] DATETIME,
+	[updated_at] DATETIME,
+	[inactive] DATETIME
 );
 GO
 
 CREATE TABLE [courses] (
   [id] UNIQUEIDENTIFIER PRIMARY KEY,
   [name] varchar(255) NOT NULL,
-  [category_id] int NOT NULL,
-  [image_path] varchar(255),
+  [category_id] UNIQUEIDENTIFIER NOT NULL,
+  [image] varchar(255),
   [description] text,
   [created_at] datetime DEFAULT GETDATE(),
   [updated_at] datetime DEFAULT GETDATE(),
   [inactive] datetime
 )
 GO
+
+CREATE TABLE course_schedule(
+	id UNIQUEIDENTIFIER PRIMARY KEY,
+	course_id UNIQUEIDENTIFIER NOT NULL,
+	course_date DATETIME NOT NULL
+);
 
 IF OBJECT_ID(N'dbo.roles', N'U') IS NOT NULL
 	IF OBJECT_ID(N'dbo.users', N'U') IS NOT NULL
@@ -92,10 +102,16 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE = 'BASE TABLE' 
 AND TABLE_CATALOG = 'ApelMusicDB';
 
-EXEC sp_help 'users';
+EXEC sp_help 'courses';
 
 SELECT * FROM roles;
 SELECT * FROM users;
+SELECT * FROM categories;
+SELECT * FROM courses;
+
+SELECT * FROM categories WHERE id = '119CB73B-9BA2-4861-85C1-15B4FBE376E8';
+
+UPDATE users SET verification_token = NULL WHERE verification_token = '188662381CCFCF7AE77A7BFBE09E2AAA6CABC00FB8B6B5C6D10C74B9D16E8ECEF5AAD2C6523D98262DAD3EFCDB3A01DCBCEC8E4841B677409E024C00438A4F25';
 
 SELECT u.id as user_id, 
 	   full_name, 

@@ -14,13 +14,16 @@ namespace ApelMusic.Services
 
         private readonly IConfiguration _configuration;
 
-        public ImageServices(IWebHostEnvironment env, IConfiguration configuration)
+        private readonly ILogger<ImageServices> _logger;
+
+        public ImageServices(IWebHostEnvironment env, IConfiguration configuration, ILogger<ImageServices> logger)
         {
             _env = env;
             _configuration = configuration;
+            _logger = logger;
         }
 
-        public async Task<string> UploadImageAsync(IFormFile file)
+        public async Task<string> UploadImageAsync(IFormFile file, string folder = "")
         {
             if (file == null || file.Length == 0)
             {
@@ -28,7 +31,15 @@ namespace ApelMusic.Services
             }
 
             string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            string filePath = Path.Combine(_env.ContentRootPath, _imagePath + fileName);
+            string filePath;
+            if (!string.IsNullOrEmpty(folder) || !string.IsNullOrWhiteSpace(folder))
+            {
+                filePath = Path.Combine(_env.ContentRootPath, _imagePath + folder + fileName);
+            }
+            else
+            {
+                filePath = Path.Combine(_env.ContentRootPath, _imagePath + fileName);
+            }
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
@@ -53,6 +64,7 @@ namespace ApelMusic.Services
         public async Task<byte[]> GetImageAsync(string fileName)
         {
             var filePath = Path.Combine(_env.ContentRootPath, _imagePath + fileName);
+            _logger.LogInformation("filePath: ", filePath);
             if (!File.Exists(filePath))
             {
                 throw new FileNotFoundException();

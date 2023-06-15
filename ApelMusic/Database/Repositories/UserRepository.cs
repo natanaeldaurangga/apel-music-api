@@ -59,9 +59,10 @@ namespace ApelMusic.Database.Repositories
 
                 queryBuilder.Append(query1);
 
+                // Mengecek apakah pemanggilan fungsi menspesifikan column yang dicari
+                // jika tidak maka akan 'get all'
                 if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
                 {
-                    // WHERE <inputColumn> = <value>
                     queryBuilder.Append("WHERE ").Append(column).Append(" = @Value");
                 }
 

@@ -13,11 +13,14 @@ namespace ApelMusic.Controllers
     {
         private readonly RoleSeeder _roleSeed;
 
+        private readonly CourseSeeder _courseSeeder;
+
         private readonly ILogger<Seeder> _logger;
 
-        public Seeder(RoleSeeder roleSeed, ILogger<Seeder> logger)
+        public Seeder(RoleSeeder roleSeed, CourseSeeder courseSeeder, ILogger<Seeder> logger)
         {
             _roleSeed = roleSeed;
+            _courseSeeder = courseSeeder;
             _logger = logger;
         }
 
@@ -27,6 +30,7 @@ namespace ApelMusic.Controllers
             try
             {
                 _ = await _roleSeed.Run();
+                _ = await _courseSeeder.Run();
                 return NoContent();
             }
             catch (System.Exception)

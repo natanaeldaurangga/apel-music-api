@@ -21,16 +21,21 @@ builder.Services.AddSwaggerGen();
 #region AddScoped Migration dan seeder
 builder.Services.AddScoped<MainMigrations>();
 builder.Services.AddScoped<RoleSeeder>();
+builder.Services.AddScoped<CourseSeeder>();
 #endregion
 
 #region AddScoped Repostories
 builder.Services.AddScoped<RoleRepository>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<CategoryRepository>();
+builder.Services.AddScoped<CourseRepository>();
 #endregion
 
 #region AddScoped Services
 builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<ImageServices>();
 #endregion
 
 #region Email Configuration
@@ -78,9 +83,9 @@ builder.Services.AddAuthorization(options =>
 });
 #endregion
 
-// builder.Services.AddCors(options => options.AddPolicy(name: "AddAllOrigins",
-//     builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
-// ));
+builder.Services.AddCors(options => options.AddPolicy(name: "AllowedOrigins",
+    builder => builder.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod()
+));
 
 var app = builder.Build();
 
@@ -90,6 +95,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowedOrigins");
 
 app.UseHttpsRedirection();
 

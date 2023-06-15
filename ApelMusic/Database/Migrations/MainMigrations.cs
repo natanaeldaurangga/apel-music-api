@@ -33,6 +33,16 @@ namespace ApelMusic.Database.Migrations
                     BEGIN
                         ALTER TABLE dbo.users DROP CONSTRAINT fk_user_role
                     END
+
+                IF (OBJECT_ID('dbo.fk_course_category', 'F') IS NOT NULL)
+                    BEGIN
+                        ALTER TABLE dbo.courses DROP CONSTRAINT fk_course_category
+                    END
+
+                IF (OBJECT_ID('dbo.fk_schedule_course', 'F') IS NOT NULL)
+                    BEGIN
+                        ALTER TABLE dbo.course_schedules DROP CONSTRAINT fk_schedule_courses
+                    END
             ";
             return await MigrationExecuteAsync(conn, transaction, query);
         }
@@ -51,6 +61,9 @@ namespace ApelMusic.Database.Migrations
 
                 IF OBJECT_ID(N'dbo.courses', N'U') IS NOT NULL
                     DROP TABLE dbo.courses
+
+                IF OBJECT_ID(N'dbo.course_schedules', N'U') IS NOT NULL
+                    DROP TABLE dbo.course_schedules
             ";
 
             return await MigrationExecuteAsync(conn, transaction, query);
@@ -100,6 +113,56 @@ namespace ApelMusic.Database.Migrations
             return await MigrationExecuteAsync(conn, transaction, query);
         }
 
+        private static async Task<int> CreateTableCategoriesAsync(SqlConnection conn, SqlTransaction transaction)
+        {
+            const string query = @"
+                CREATE TABLE categories (
+                    [id] UNIQUEIDENTIFIER PRIMARY KEY,
+                    [tag_name] VARCHAR(50) NOT NULL,
+                    [name] VARCHAR(50) NOT NULL,
+                    [image] VARCHAR(255),
+                    [banner_image] VARCHAR(255),
+                    [category_description] TEXT,
+                    [created_at] DATETIME,
+                    [updated_at] DATETIME,
+                    [inactive] DATETIME
+                );
+            ";
+
+            return await MigrationExecuteAsync(conn, transaction, query);
+        }
+
+        private static async Task<int> CreateTableCoursesAsync(SqlConnection conn, SqlTransaction transaction)
+        {
+            const string query = @"
+                CREATE TABLE [courses] (
+                    [id] UNIQUEIDENTIFIER PRIMARY KEY,
+                    [name] varchar(255) NOT NULL,
+                    [category_id] UNIQUEIDENTIFIER NOT NULL,
+                    [image] varchar(255),
+                    [description] text,
+                    [created_at] datetime DEFAULT GETDATE(),
+                    [updated_at] datetime DEFAULT GETDATE(),
+                    [inactive] datetime
+                );
+            ";
+
+            return await MigrationExecuteAsync(conn, transaction, query);
+        }
+
+        private static async Task<int> CreateTableCourseSchedulesAsync(SqlConnection conn, SqlTransaction transaction)
+        {
+            const string query = @"
+                CREATE TABLE course_schedules(
+                    id UNIQUEIDENTIFIER PRIMARY KEY,
+                    course_id UNIQUEIDENTIFIER NOT NULL,
+                    course_date DATETIME NOT NULL
+                );
+            ";
+
+            return await MigrationExecuteAsync(conn, transaction, query);
+        }
+
         #endregion
         // END: Method for creating tables
 
@@ -115,6 +178,24 @@ namespace ApelMusic.Database.Migrations
                             ADD CONSTRAINT fk_user_role
                             FOREIGN KEY (role_id)
                             REFERENCES roles(id)
+                        END
+
+                IF OBJECT_ID(N'dbo.categories', N'U') IS NOT NULL
+                    IF OBJECT_ID(N'dbo.courses', N'U') IS NOT NULL
+                        BEGIN
+                            ALTER TABLE courses
+                            ADD CONSTRAINT fk_course_category
+                            FOREIGN KEY (category_id)
+                            REFERENCES categories(id)
+                        END
+                
+                IF OBJECT_ID(N'dbo.courses', N'U') IS NOT NULL
+                    IF OBJECT_ID(N'dbo.course_schedules', N'U') IS NOT NULL
+                        BEGIN
+                            ALTER TABLE courses
+                            ADD CONSTRAINT fk_schedule_course
+                            FOREIGN KEY (course_id)
+                            REFERENCES courses(id)
                         END
             ";
 
@@ -206,6 +287,9 @@ namespace ApelMusic.Database.Migrations
                 _ = await ClearTablesTaskAsync(conn, transaction);
                 _ = await CreateTableRolesAsync(conn, transaction);
                 _ = await CreateTableUsersAsync(conn, transaction);
+                _ = await CreateTableCategoriesAsync(conn, transaction);
+                _ = await CreateTableCoursesAsync(conn, transaction);
+                _ = await CreateTableCourseSchedulesAsync(conn, transaction);
                 transaction.Commit();
                 return 1;
             }
