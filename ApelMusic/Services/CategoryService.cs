@@ -63,8 +63,8 @@ namespace ApelMusic.Services
         {
             try
             {
-                var imageName = await _imageServices.UploadImageAsync(request.Image!, folder: "Upload%5C%5C");
-                var bannerName = await _imageServices.UploadImageAsync(request.BannerImage!, folder: "Upload%5C%5C");
+                var imageName = await _imageServices.UploadImageAsync(request.Image!, folder: "Upload");
+                var bannerName = await _imageServices.UploadImageAsync(request.BannerImage!, folder: "Upload");
                 var category = new Category()
                 {
                     Id = Guid.NewGuid(),
@@ -81,7 +81,6 @@ namespace ApelMusic.Services
             }
             catch (System.Exception)
             {
-
                 throw;
             }
         }

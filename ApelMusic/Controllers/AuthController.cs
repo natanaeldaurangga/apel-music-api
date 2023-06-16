@@ -177,7 +177,6 @@ namespace ApelMusic.Controllers
             }
             catch (System.Exception)
             {
-                // return StatusCode(StatusCodes.Status500InternalServerError);
                 throw;
             }
 
@@ -209,6 +208,34 @@ namespace ApelMusic.Controllers
             catch (System.Exception)
             {
                 // return StatusCode(StatusCodes.Status500InternalServerError);
+                throw;
+            }
+        }
+
+        [HttpPost("SetInactive/{id}")]
+        public async Task<IActionResult> SetInactive([FromBody] Guid id)
+        {
+            try
+            {
+                var result = await _authService.SetInactiveUser(id, true);
+                return NoContent();
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpPost("RestoreStatus/{id}")]
+        public async Task<IActionResult> SetActive([FromBody] Guid id)
+        {
+            try
+            {
+                var result = await _authService.SetInactiveUser(id, false);
+                return NoContent();
+            }
+            catch (System.Exception)
+            {
                 throw;
             }
         }

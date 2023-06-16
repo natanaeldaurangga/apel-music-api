@@ -15,12 +15,15 @@ namespace ApelMusic.Controllers
 
         private readonly CourseSeeder _courseSeeder;
 
+        private readonly UserSeeder _userSeder;
+
         private readonly ILogger<Seeder> _logger;
 
-        public Seeder(RoleSeeder roleSeed, CourseSeeder courseSeeder, ILogger<Seeder> logger)
+        public Seeder(RoleSeeder roleSeed, CourseSeeder courseSeeder, UserSeeder userSeeder, ILogger<Seeder> logger)
         {
             _roleSeed = roleSeed;
             _courseSeeder = courseSeeder;
+            _userSeder = userSeeder;
             _logger = logger;
         }
 
@@ -31,13 +34,11 @@ namespace ApelMusic.Controllers
             {
                 _ = await _roleSeed.Run();
                 _ = await _courseSeeder.Run();
+                _ = await _userSeder.Run();
                 return NoContent();
             }
             catch (System.Exception)
             {
-                // _logger.LogError(e.Message);
-                // _logger.LogError(e.StackTrace);
-                // return StatusCode(500);
                 throw;
             }
         }

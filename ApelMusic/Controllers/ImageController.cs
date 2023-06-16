@@ -21,7 +21,7 @@ namespace ApelMusic.Controllers
             _logger = logger;
         }
 
-        [HttpGet("GetImage/{fileName}")]
+        [HttpGet("{fileName}")]
         public async Task<IActionResult> GetImage([FromRoute] string fileName)
         {
             try

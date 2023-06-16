@@ -151,6 +151,47 @@ namespace ApelMusic.Database.Repositories
         }
         #endregion
 
+        #region SET INACTIVE
+        public async Task<int> SetInactiveTaskAsync(SqlConnection conn, SqlTransaction transaction, Guid id, bool inactive = false)
+        {
+            const string query = @"
+                UPDATE users
+                SET inactive = @Inactive
+                WHERE id = @Id
+            ";
+
+            SqlCommand cmd = new(query, conn, transaction);
+            cmd.Parameters.AddWithValue("@Inactive", inactive ? DateTime.UtcNow : DBNull.Value);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> SetInactiveAsync(Guid id, bool inactive = false)
+        {
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                _ = await SetInactiveTaskAsync(conn, transaction, id, inactive);
+                transaction.Commit();
+                return 1;
+            }
+            catch (System.Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+                await conn.CloseAsync();
+            }
+        }
+
+        #endregion
+
         #region RESET PASSWORD
         public async Task<int> ResetPasswordTaskAsync(SqlConnection connection, SqlTransaction transaction, string token, byte[] passwordHash, byte[] passwordSalt)
         {
@@ -321,8 +362,8 @@ namespace ApelMusic.Database.Repositories
         public async Task<int> InsertUserTaskAsync(SqlConnection conn, SqlTransaction transaction, User user)
         {
             const string query = @"
-                INSERT INTO users (id, full_name, email, password_hash, password_salt, role_id, verification_token, created_at, updated_at)
-                VALUES (@Id, @FullName, @Email, @PasswordHash, @PasswordSalt, @RoleId, @VerificationToken, @CreatedAt, @UpdatedAt);
+                INSERT INTO users (id, full_name, email, password_hash, password_salt, role_id, verification_token, verified_at, created_at, updated_at)
+                VALUES (@Id, @FullName, @Email, @PasswordHash, @PasswordSalt, @RoleId, @VerificationToken, @VerifiedAt, @CreatedAt, @UpdatedAt);
             ";
 
             SqlCommand cmd = new(query, conn, transaction);
@@ -332,9 +373,15 @@ namespace ApelMusic.Database.Repositories
             cmd.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
             cmd.Parameters.AddWithValue("@PasswordSalt", user.PasswordSalt);
             cmd.Parameters.AddWithValue("@RoleId", user.RoleId);
-            cmd.Parameters.AddWithValue("@VerificationToken", user.VerificationToken);
             cmd.Parameters.AddWithValue("@CreatedAt", user.CreatedAt);
             cmd.Parameters.AddWithValue("@UpdatedAt", user.UpdatedAt);
+
+            if (user.VerificationToken == null) cmd.Parameters.AddWithValue("@VerificationToken", DBNull.Value);
+            else cmd.Parameters.AddWithValue("@VerificationToken", user.VerificationToken);
+
+            if (user.VerifiedAt == null) cmd.Parameters.AddWithValue("@VerifiedAt", DBNull.Value);
+            else cmd.Parameters.AddWithValue("@VerifiedAt", user.VerifiedAt);
+
             return await cmd.ExecuteNonQueryAsync();
         }
 

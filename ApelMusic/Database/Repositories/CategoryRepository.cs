@@ -44,7 +44,7 @@ namespace ApelMusic.Database.Repositories
                            created_at,
                            updated_at,
                            inactive
-                    FROM categories
+                    FROM categories 
                 ";
 
                 queryBuilder.Append(query1);
@@ -59,6 +59,11 @@ namespace ApelMusic.Database.Repositories
                 string finalQuery = queryBuilder.ToString();
 
                 var cmd = new SqlCommand(finalQuery, conn);
+
+                if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
+                {
+                    cmd.Parameters.AddWithValue("@Value", value);
+                }
 
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                 {
@@ -141,7 +146,7 @@ namespace ApelMusic.Database.Repositories
             SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
             try
             {
-                _logger.LogInformation("Ini dari InsertCategoryAsync");
+                // _logger.LogInformation("Ini dari InsertCategoryAsync");
                 _ = await InsertCategoryTaskAsync(conn, transaction, category);
                 transaction.Commit();
                 return 1;

@@ -105,12 +105,43 @@ namespace ApelMusic.Services
         }
         #endregion
 
+        #region Adding User
+
+        public async Task<int> SeedRegisterUser(SeedUserRequest request)
+        {
+            CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
+
+            var role = await _roleService.GetRoleByNameAsync(request.Role!);
+
+            if (role != null)
+            {
+                User user = new()
+                {
+                    Id = request.Id,
+                    Email = request.Email,
+                    FullName = request.FullName,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    RoleId = role.Id,
+                    Role = role,
+                    VerifiedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _ = await _userRepo.InsertUserAsync(user);
+                return 1;
+            }
+
+            return 0;
+        }
+
         public async Task<string?> RegisterNewUserAsync(RegistrationRequest request)
         {
             CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
 
             var role = await _roleService.GetRoleByNameAsync("USER");
-            _logger.LogInformation("Role Id: {}", role?.Id);
+            // _logger.LogInformation("Role Id: {}", role?.Id);
             if (role != null)
             {
                 var verificationToken = CreateRandomToken();
@@ -134,6 +165,7 @@ namespace ApelMusic.Services
             }
             return null;
         }
+        #endregion
 
         public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
@@ -144,6 +176,11 @@ namespace ApelMusic.Services
             if (!VerifyPasswordHash(request.Password!, user.PasswordHash!, user.PasswordSalt!))
             {
                 return null; // Jika password salah
+            }
+
+            if (user.Inactive != null)
+            {
+                return null;
             }
 
             string token = GenerateJwtToken(user);
@@ -161,6 +198,11 @@ namespace ApelMusic.Services
                 RefreshToken = refreshToken,
                 User = user
             };
+        }
+
+        public async Task<int> SetInactiveUser(Guid id, bool inactive = false)
+        {
+            return await _userRepo.SetInactiveAsync(id, inactive);
         }
 
         public async Task<bool> VerifyUserAsync(string token)

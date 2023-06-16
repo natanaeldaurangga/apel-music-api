@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,20 +12,36 @@ namespace ApelMusic.Database.Seeds
     {
         private readonly CategoryService _categoryService;
 
+        private readonly CourseService _courseService;
+
+        private readonly ILogger<CourseSeeder> _logger;
+
+        private readonly List<DateTime> dummySchedules = new()
+        {
+            DateTime.ParseExact("2023-07-08 00:00:00", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            DateTime.ParseExact("2023-07-10 00:00:00", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            DateTime.ParseExact("2023-07-12 00:00:00", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            DateTime.ParseExact("2023-07-15 00:00:00", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            DateTime.ParseExact("2023-07-19 00:00:00", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            DateTime.ParseExact("2023-07-23 00:00:00", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+        };
+
         private readonly string dummyDescription = @"
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis semper tortor eu justo rhoncus imperdiet. Morbi porta in libero at finibus. Aenean tellus tortor, ultrices ut justo sit amet, sollicitudin lobortis elit. Quisque finibus, odio a vulputate porttitor, elit nulla varius metus, vel tempus diam quam eget tellus. Ut tempus iaculis odio quis elementum. Fusce eget orci eget eros aliquet interdum.
 
             Nunc non ipsum fermentum, facilisis mi vel, pellentesque eros. Suspendisse potenti. Duis ullamcorper tortor sit amet augue rutrum sodales. Morbi nec facilisis sapien. Ut sed nisi ullamcorper, blandit massa sed, porta augue. Donec vestibulum ipsum non elit tristique, in maximus elit gravida. Donec eleifend purus eget ipsum dapibus, at tempus nunc cursus. Curabitur ornare massa id lectus tincidunt venenatis. Etiam vel justo a enim vehicula vehicula sit amet at dolor. Mauris lacinia odio vitae sapien semper semper.
         ";
 
-        public CourseSeeder(CategoryService categoryService)
+        public CourseSeeder(CategoryService categoryService, CourseService courseService, ILogger<CourseSeeder> logger)
         {
             _categoryService = categoryService;
+            _courseService = courseService;
+            _logger = logger;
         }
 
         public async Task<int> Run()
         {
-            var seeds = new List<SeedCategoryRequest>()
+            var categories = new List<SeedCategoryRequest>()
             {
                 new SeedCategoryRequest(){ Id = Guid.NewGuid(),TagName = "Drum", Name = "Drummer Class", Image = "Constant%5C%5CDrumCategory.png", BannerImage = "Constant%5C%5CDrumCategoryBanner.png", CategoryDescription = dummyDescription },
                 new SeedCategoryRequest(){ Id = Guid.NewGuid(),TagName = "Piano", Name = "Pianist Class", Image = "Constant%5C%5CPianoCategory.png", BannerImage = "Constant%5C%5CPianoCategoryBanner.jpg", CategoryDescription = dummyDescription },
@@ -36,9 +53,23 @@ namespace ApelMusic.Database.Seeds
                 new SeedCategoryRequest(){ Id = Guid.NewGuid(),TagName = "Saxophone", Name = "Saxophone Class", Image = "Constant%5C%5CSaxophoneCategory.png", BannerImage = "Constant%5C%5CDrumCategoryBanner.png", CategoryDescription = dummyDescription },
             };
 
+            var courses = new List<SeedCourseRequest>()
+            {
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Kursus Drummer Special Coach (Eno Netral)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse1", Description = dummyDescription, Price = 8_500_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "[Beginner] Guitar class for kids", CategoryId = categories[2].Id, Image = "Constant%5C%5CCourse2", Description = dummyDescription, Price = 1_600_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Biola Mid-Level Course", CategoryId = categories[4].Id, Image = "Constant%5C%5CCourse3", Description = dummyDescription, Price = 3_000_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Drummer for Kids (Level Basics/1)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse4", Description = dummyDescription, Price = 2_200_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Kursus Piano: From Zero to Pro (Full Package)", CategoryId = categories[1].Id, Image = "Constant%5C%5CCourse5", Description = dummyDescription, Price = 11_650_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Expert Level Saxophone", CategoryId = categories[7].Id, Image = "Constant%5C%5CCourse6", Description = dummyDescription, Price = 7_350_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Expert Level Drummer Lessons", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse7", Description = dummyDescription, Price = 5_450_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "From Zero to Professional Drummer (Complit Package)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse8", Description = dummyDescription, Price = 13_000_000, Schedules = dummySchedules },
+            };
+
+
             try
             {
-                seeds.ForEach(async seed => await _categoryService.InsertSeedCategoryAsync(seed));
+                categories.ForEach(async seed => await _categoryService.InsertSeedCategoryAsync(seed));
+                courses.ForEach(async seed => await _courseService.InsertSeedCourseAsync(seed));
                 return 1;
             }
             catch (System.Exception)
@@ -46,6 +77,5 @@ namespace ApelMusic.Database.Seeds
                 throw;
             }
         }
-
     }
 }

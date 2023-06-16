@@ -57,7 +57,6 @@ namespace ApelMusic.Database.Repositories
             }
         }
 
-
         // Get role by name
         public async Task<List<Role>?> GetByNameAsync(string name)
         {

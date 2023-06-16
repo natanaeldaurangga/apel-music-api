@@ -26,6 +26,10 @@ namespace ApelMusic.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> InsertCategory([FromForm] CreateCategoryRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
                 var result = await _categoryService.InsertCategoryAsync(request);

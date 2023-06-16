@@ -140,6 +140,7 @@ namespace ApelMusic.Database.Migrations
                     [name] varchar(255) NOT NULL,
                     [category_id] UNIQUEIDENTIFIER NOT NULL,
                     [image] varchar(255),
+                    [price] decimal(10, 2),
                     [description] text,
                     [created_at] datetime DEFAULT GETDATE(),
                     [updated_at] datetime DEFAULT GETDATE(),

@@ -17,6 +17,8 @@ namespace ApelMusic.Entities
 
         public string? Description { get; set; }
 
-        public List<CourseSchedule> CourseSchedules { get; set; } = new List<CourseSchedule>();
+        public decimal Price { get; set; }
+
+        public List<CourseSchedule>? CourseSchedules { get; set; } = new List<CourseSchedule>();
     }
 }

@@ -22,6 +22,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<MainMigrations>();
 builder.Services.AddScoped<RoleSeeder>();
 builder.Services.AddScoped<CourseSeeder>();
+builder.Services.AddScoped<UserSeeder>();
 #endregion
 
 #region AddScoped Repostories
@@ -29,6 +30,7 @@ builder.Services.AddScoped<RoleRepository>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<CategoryRepository>();
 builder.Services.AddScoped<CourseRepository>();
+builder.Services.AddScoped<CourseScheduleRepository>();
 #endregion
 
 #region AddScoped Services
@@ -36,6 +38,8 @@ builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<ImageServices>();
+builder.Services.AddScoped<CourseService>();
+builder.Services.AddScoped<CourseScheduleService>();
 #endregion
 
 #region Email Configuration
@@ -78,8 +82,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ADMIN", policy => policy.RequireRole("ROLE_ADMIN"));
-    options.AddPolicy("USER", policy => policy.RequireRole("ROLE_USER"));
+    options.AddPolicy("ADMIN", policy => policy.RequireRole("ADMIN"));
+    options.AddPolicy("USER", policy => policy.RequireRole("USER"));
 });
 #endregion
 

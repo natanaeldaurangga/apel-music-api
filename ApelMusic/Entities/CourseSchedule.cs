@@ -10,6 +10,6 @@ namespace ApelMusic.Entities
     {
         public Guid? CourseId { get; set; }
 
-        public DateTime CourseDate { get; set; }
+        public DateTime? CourseDate { get; set; }
     }
 }

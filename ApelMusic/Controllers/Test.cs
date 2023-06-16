@@ -44,10 +44,16 @@ namespace ApelMusic.Controllers
             return Ok(_env.ContentRootPath);
         }
 
-        [HttpGet("OnlyUser"), Authorize]
-        public async Task<IActionResult> GetUser()
+        [HttpGet("OnlyUser"), Authorize("USER")]
+        public IActionResult GetUser()
         {
             return Ok("Endpoint ini hanya bisa diakses oleh user.");
+        }
+
+        [HttpGet("OnlyAdmin"), Authorize("ADMIN")]
+        public IActionResult GetAdmin()
+        {
+            return Ok("Endpoint ini hanya bisa diakses oleh admin.");
         }
 
     }

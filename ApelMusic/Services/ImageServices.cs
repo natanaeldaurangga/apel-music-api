@@ -34,7 +34,7 @@ namespace ApelMusic.Services
             string filePath;
             if (!string.IsNullOrEmpty(folder) || !string.IsNullOrWhiteSpace(folder))
             {
-                filePath = Path.Combine(_env.ContentRootPath, _imagePath + folder + fileName);
+                filePath = Path.Combine(_env.ContentRootPath, _imagePath + folder + "/" + fileName);
             }
             else
             {
@@ -46,7 +46,7 @@ namespace ApelMusic.Services
                 await file.CopyToAsync(stream);
             }
 
-            return fileName;
+            return folder + "%5C%5C" + fileName; // NOTE: '%5C%5C' -> '\\', biar bisa dibaca Http urlnya
         }
 
         public bool DeleteImage(string fileName)
