@@ -27,22 +27,19 @@ namespace ApelMusic.Database.Repositories
 
         #region Method untuk get course
 
-        private async Task<int> GetRowCount()
+        public async Task<int> GetRowCount()
         {
-            using (SqlConnection conn = new SqlConnection(ConnectionString))
-            {
-                await conn.OpenAsync();
-                const string query = "SELECT COUNT(*) FROM courses";
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            const string query = "SELECT COUNT(*) FROM courses";
 
-                using SqlCommand command = new(query, conn);
-                // Execute the scalar query to get the row count
-                int rowCount = (int)command.ExecuteScalar();
-
-                return rowCount;
-            }
+            using SqlCommand command = new(query, conn);
+            // Execute the scalar query to get the row count
+            return (int)command.ExecuteScalar();
         }
 
-        private async Task<List<Course>> CoursePageAsync(PageQueryRequest pageQuery, string column, string value)
+        // Fungsi ini mereturn 2 tipe data yaitu List courses dan juga totalRows dari query (int)
+        public async Task<List<Course>> CoursePagedAsync(PageQueryRequest pageQuery, string column = "", string value = "")
         {
             var courses = new List<Course>();
             using SqlConnection conn = new(ConnectionString);
@@ -63,8 +60,8 @@ namespace ApelMusic.Database.Repositories
                            c.inactive as inactive,
                            ct.tag_name as category_tag_name
                     FROM courses c 
-                    LEFT JOIN category ct ON ct.id = c.category_id 
-                    WHERE (name LIKE @Name) 
+                    LEFT JOIN categories ct ON ct.id = c.category_id 
+                    WHERE (c.name LIKE @Name) 
                 ";
                 queryBuilder.Append(query);
 
@@ -74,13 +71,17 @@ namespace ApelMusic.Database.Repositories
                     queryBuilder.Append("AND (").Append(column).Append(" = @Value)");
                 }
 
+                // Menentukan Ascending atau Descending
                 string direction = string.Equals(pageQuery.Direction, "ASC", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC"; // komparasi string tanpa melihat case nya
-                string orderByQuery = $"ORDER BY @OrderBy {direction} ";
+
+                // Menentukan kolom mana yang akan disorting
+                string columnSorted = string.IsNullOrEmpty(pageQuery.SortBy) ? "c.name" : pageQuery.SortBy;
+                string orderByQuery = $"ORDER BY {columnSorted} {direction} ";
 
                 queryBuilder.Append(orderByQuery);
 
                 string pagingQuery = @"
-                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY 
                 ";
 
                 queryBuilder.Append(pagingQuery);
@@ -136,7 +137,6 @@ namespace ApelMusic.Database.Repositories
                         courses.Add(course);
                     }
                 }
-
                 return courses;
             }
             catch (System.Exception)

@@ -8,7 +8,6 @@ namespace ApelMusic.Entities
 {
     public class User : BaseEntity
     {
-
         [MaxLength(255)]
         public string? FullName { get; set; }
 

@@ -14,5 +14,7 @@ namespace ApelMusic.DTOs.Courses
         public decimal Price { get; set; }
 
         public string ImageName { get; set; } = "default.png";
+
+        public CategorySummaryResponse? Category { get; set; }
     }
 }

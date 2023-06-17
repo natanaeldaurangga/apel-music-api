@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.Entities;
 using ApelMusic.DTOs.Auth;
+using ApelMusic.DTOs;
 
 namespace ApelMusic.Database.Repositories
 {
@@ -25,7 +26,26 @@ namespace ApelMusic.Database.Repositories
             this.ConnectionString = _config.GetConnectionString("DefaultConnection");
         }
 
-        #region FIND USER
+        #region GET USER
+        public async Task<List<User>> UserPagedAsync(PageQueryRequest request, string column = "", string value = "")
+        {
+            // 
+            var users = new List<User>();
+            using SqlConnection conn = new(ConnectionString);
+            try
+            {
+                await conn.OpenAsync();
+                
+
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+
+            return null;
+        }
+
         // Method multi fungsi, kita bisa mencari user berdasarkan semua kolom yang ada di table user
         public async Task<List<User>> FindUserByAsync(string column = "", string value = "")
         {

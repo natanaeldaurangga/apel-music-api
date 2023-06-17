@@ -107,11 +107,11 @@ EXEC sp_help 'courses';
 SELECT * FROM roles;
 SELECT * FROM users;
 SELECT c.* FROM categories c;
-SELECT * FROM courses;
+SELECT * FROM courses ORDER BY [name];
 SELECT * FROM course_schedules ORDER BY id ASC;
 SELECT COUNT(*) FROM course_schedules;
 
-SELECT * FROM course_schedules ORDER BY id OFFSET (2 - 1) * 2 ROWS FETCH NEXT 2 ROWS ONLY;
+SELECT * FROM courses ORDER BY [name] OFFSET (4 - 1) * 4 ROWS FETCH NEXT 4 ROWS ONLY;
 
 -- SELECT @@VERSION;
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ApelMusic.DTOs.Courses;
 using ApelMusic.Services;
 using Microsoft.AspNetCore.Mvc;
+using ApelMusic.DTOs;
 
 namespace ApelMusic.Controllers
 {
@@ -21,7 +22,6 @@ namespace ApelMusic.Controllers
         {
             _courseService = courseService;
             _logger = logger;
-
         }
 
         [HttpPost]
@@ -45,11 +45,34 @@ namespace ApelMusic.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCourses()
+        public async Task<IActionResult> GetCourses([FromQuery] PageQueryRequest request)
         {
             try
             {
-                return Ok(await _courseService.GetAllCoursesAsync());
+                var result = await _courseService.PaginateCourseAsync(request);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("GroupByCategory/{categoryId}")]
+        public async Task<IActionResult> GetCoursesByCategory([FromQuery] PageQueryRequest request, [FromRoute] Guid categoryId)
+        {
+            try
+            {
+                var result = await _courseService.PaginateCourseAsync(request, "c.category_id", categoryId.ToString());
+                if (result!.Items.Count == 0)
+                {
+                    return NotFound();
+                }
+                return Ok(result);
             }
             catch (System.Exception)
             {

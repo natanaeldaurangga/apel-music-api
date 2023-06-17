@@ -7,6 +7,8 @@ namespace ApelMusic.DTOs.Courses
 {
     public class CategorySummaryResponse
     {
-        
+        public Guid Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
     }
 }

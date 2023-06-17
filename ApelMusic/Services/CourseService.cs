@@ -6,6 +6,7 @@ using ApelMusic.Database.Repositories;
 using ApelMusic.DTOs;
 using ApelMusic.DTOs.Courses;
 using ApelMusic.Entities;
+using ApelMusic.Utility;
 
 namespace ApelMusic.Services
 {
@@ -64,7 +65,29 @@ namespace ApelMusic.Services
             }
         }
 
-        // public async Task<PageQueryResponse<>>
+        public async Task<PageQueryResponse<CourseSummaryResponse>?> PaginateCourseAsync(PageQueryRequest request, string column = "", string value = "")
+        {
+            var courses = await _courseRepo.CoursePagedAsync(request, column, value);
+
+            List<CourseSummaryResponse> coursesSummary = courses.ConvertAll(course =>
+            {
+                return new CourseSummaryResponse()
+                {
+                    Id = course.Id,
+                    Name = course.Name!,
+                    Category = new CategorySummaryResponse() { Id = course.Category!.Id, Name = course.Category!.Name! },
+                    ImageName = course.Image!,
+                    Price = course.Price
+                };
+            });
+
+            return new PageQueryResponse<CourseSummaryResponse>()
+            {
+                CurrentPage = request.CurrentPage,
+                PageSize = request.PageSize,
+                Items = coursesSummary
+            };
+        }
 
         public async Task<List<Course>> GetAllCoursesAsync()
         {

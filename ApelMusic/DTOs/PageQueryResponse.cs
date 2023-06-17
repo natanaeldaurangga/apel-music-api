@@ -7,13 +7,13 @@ namespace ApelMusic.DTOs
 {
     public class PageQueryResponse<T>
     {
-        public int TotalCount { get; set; } // TOTAL DATA
+        // public int TotalRowsInTable { get; set; } // TOTAL DATA
 
-        public int PageNumber { get; set; } // CURRENT PAGE
+        public int CurrentPage { get; set; } // CURRENT PAGE
 
         public int PageSize { get; set; } // DATA PERPAGE
 
-        public int TotalPage { get; set; } // TOTAL PAGE
+        // public int TotalPages { get; set; } // TOTAL PAGE
 
         public List<T> Items { get; set; } = new();
     }
