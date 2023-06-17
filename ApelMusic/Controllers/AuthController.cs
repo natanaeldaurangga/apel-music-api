@@ -116,6 +116,7 @@ namespace ApelMusic.Controllers
             {
                 return BadRequest(ModelState);
             }
+
             try
             {
                 var result = await _authService.LoginAsync(request);
@@ -213,7 +214,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost("SetInactive/{id}")]
-        public async Task<IActionResult> SetInactive([FromBody] Guid id)
+        public async Task<IActionResult> SetInactive([FromRoute] Guid id)
         {
             try
             {
@@ -227,7 +228,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost("RestoreStatus/{id}")]
-        public async Task<IActionResult> SetActive([FromBody] Guid id)
+        public async Task<IActionResult> SetActive([FromRoute] Guid id)
         {
             try
             {

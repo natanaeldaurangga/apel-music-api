@@ -152,7 +152,7 @@ namespace ApelMusic.Database.Repositories
         #endregion
 
         #region SET INACTIVE
-        public async Task<int> SetInactiveTaskAsync(SqlConnection conn, SqlTransaction transaction, Guid id, bool inactive = false)
+        public async Task<int> SetInactiveTaskAsync(SqlConnection conn, SqlTransaction transaction, Guid id, bool inactive)
         {
             const string query = @"
                 UPDATE users

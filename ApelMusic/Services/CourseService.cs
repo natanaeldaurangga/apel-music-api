@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.Database.Repositories;
+using ApelMusic.DTOs;
 using ApelMusic.DTOs.Courses;
 using ApelMusic.Entities;
 
@@ -63,9 +64,16 @@ namespace ApelMusic.Services
             }
         }
 
+        // public async Task<PageQueryResponse<>>
+
         public async Task<List<Course>> GetAllCoursesAsync()
         {
             return await _courseRepo.FindAllCoursesAsync();
+        }
+
+        public async Task<List<Course>> FindCourseById(Guid courseId)
+        {
+            return await _courseRepo.FindCourseById(courseId);
         }
 
         public async Task<int> InsertCourseAsync(CreateCourseRequest request)

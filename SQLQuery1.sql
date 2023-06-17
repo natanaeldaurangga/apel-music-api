@@ -2,14 +2,14 @@ USE ApelMusicDB;
 
 -- START: Drop semua constraint
 IF (OBJECT_ID('dbo.fk_user_role', 'F') IS NOT NULL)
-BEGIN
-    ALTER TABLE dbo.users DROP CONSTRAINT fk_user_role
-END
+	BEGIN
+		ALTER TABLE dbo.users DROP CONSTRAINT fk_user_role
+	END
 
 IF (OBJECT_ID('dbo.fk_user_role', 'F') IS NOT NULL)
-BEGIN
-    ALTER TABLE dbo.users DROP CONSTRAINT fk_user_role
-END
+	BEGIN
+		ALTER TABLE dbo.users DROP CONSTRAINT fk_user_role
+	END
 
 -- END: Drop semua constraint
 
@@ -81,7 +81,7 @@ CREATE TABLE [courses] (
 )
 GO
 
-CREATE TABLE course_schedule(
+CREATE TABLE course_schedules(
 	id UNIQUEIDENTIFIER PRIMARY KEY,
 	course_id UNIQUEIDENTIFIER NOT NULL,
 	course_date DATETIME NOT NULL
@@ -106,8 +106,14 @@ EXEC sp_help 'courses';
 
 SELECT * FROM roles;
 SELECT * FROM users;
-SELECT * FROM categories;
+SELECT c.* FROM categories c;
 SELECT * FROM courses;
+SELECT * FROM course_schedules ORDER BY id ASC;
+SELECT COUNT(*) FROM course_schedules;
+
+SELECT * FROM course_schedules ORDER BY id OFFSET (2 - 1) * 2 ROWS FETCH NEXT 2 ROWS ONLY;
+
+-- SELECT @@VERSION;
 
 SELECT * FROM categories WHERE id = '119CB73B-9BA2-4861-85C1-15B4FBE376E8';
 

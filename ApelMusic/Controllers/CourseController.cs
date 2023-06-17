@@ -1,3 +1,4 @@
+using System.Net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace ApelMusic.Controllers
         {
             _courseService = courseService;
             _logger = logger;
-            
+
         }
 
         [HttpPost]
@@ -35,7 +36,7 @@ namespace ApelMusic.Controllers
             try
             {
                 var result = await _courseService.InsertCourseAsync(request);
-                return Ok("Data berhasil ditambahkan.");
+                return Ok();
             }
             catch (System.Exception)
             {
@@ -49,6 +50,21 @@ namespace ApelMusic.Controllers
             try
             {
                 return Ok(await _courseService.GetAllCoursesAsync());
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("{courseId}")]
+        public async Task<IActionResult> GetCourseById([FromRoute] Guid courseId)
+        {
+            try
+            {
+                var result = await _courseService.FindCourseById(courseId);
+                if (result.Count == 0) return NotFound();
+                return Ok(result[0]);
             }
             catch (System.Exception)
             {

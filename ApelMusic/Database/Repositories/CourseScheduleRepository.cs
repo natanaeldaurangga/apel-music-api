@@ -23,6 +23,30 @@ namespace ApelMusic.Database.Repositories
             this.ConnectionString = _config.GetConnectionString("DefaultConnection");
         }
 
+        public async Task<List<CourseSchedule>> GetScheduleByCourseIdAsync(Guid courseId)
+        {
+            List<CourseSchedule> schedules = new();
+
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            const string query = "SELECT * FROM course_schedules WHERE course_id = @CourseId";
+            var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@CourseId", courseId);
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                CourseSchedule schedule = new()
+                {
+                    Id = reader.GetGuid("id"),
+                    CourseId = reader.GetGuid("course_id"),
+                    CourseDate = reader.GetDateTime("course_date")
+                };
+                schedules.Add(schedule);
+            }
+
+            return schedules;
+        }
+
         public async Task<int> BulkInsertSchedulesTaskAsync(SqlConnection conn, SqlTransaction transaction, List<CourseSchedule> schedules)
         {
             DataTable table = new();
