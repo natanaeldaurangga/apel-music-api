@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.DTOs.Courses;
 using ApelMusic.Services;
+using ApelMusic.Database.Repositories;
+using ApelMusic.Entities;
 
 namespace ApelMusic.Database.Seeds
 {
@@ -13,6 +15,8 @@ namespace ApelMusic.Database.Seeds
         private readonly CategoryService _categoryService;
 
         private readonly CourseService _courseService;
+
+        private readonly PaymentMethodRepository _paymentRepo;
 
         private readonly ILogger<CourseSeeder> _logger;
 
@@ -32,10 +36,11 @@ namespace ApelMusic.Database.Seeds
             Nunc non ipsum fermentum, facilisis mi vel, pellentesque eros. Suspendisse potenti. Duis ullamcorper tortor sit amet augue rutrum sodales. Morbi nec facilisis sapien. Ut sed nisi ullamcorper, blandit massa sed, porta augue. Donec vestibulum ipsum non elit tristique, in maximus elit gravida. Donec eleifend purus eget ipsum dapibus, at tempus nunc cursus. Curabitur ornare massa id lectus tincidunt venenatis. Etiam vel justo a enim vehicula vehicula sit amet at dolor. Mauris lacinia odio vitae sapien semper semper.
         ";
 
-        public CourseSeeder(CategoryService categoryService, CourseService courseService, ILogger<CourseSeeder> logger)
+        public CourseSeeder(CategoryService categoryService, CourseService courseService, ILogger<CourseSeeder> logger, PaymentMethodRepository paymentRepo)
         {
             _categoryService = categoryService;
             _courseService = courseService;
+            _paymentRepo = paymentRepo;
             _logger = logger;
         }
 
@@ -65,11 +70,21 @@ namespace ApelMusic.Database.Seeds
                 new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "From Zero to Professional Drummer (Complit Package)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse8", Description = dummyDescription, Price = 13_000_000, Schedules = dummySchedules },
             };
 
+            var payments = new List<PaymentMethod>()
+            {
+                new PaymentMethod() { Id = Guid.NewGuid(), Image = "Constant%5C%5Cpayment-gopay.png", Name = "Gopay", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new PaymentMethod() { Id = Guid.NewGuid(), Image = "Constant%5C%5Cpayment-ovo.png", Name = "OVO", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new PaymentMethod() { Id = Guid.NewGuid(), Image = "Constant%5C%5Cpayment-dana.png", Name = "DANA", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new PaymentMethod() { Id = Guid.NewGuid(), Image = "Constant%5C%5Cpayment-mandiri.png", Name = "Mandiri", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new PaymentMethod() { Id = Guid.NewGuid(), Image = "Constant%5C%5Cpayment-bca.png", Name = "BCA", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new PaymentMethod() { Id = Guid.NewGuid(), Image = "Constant%5C%5Cpayment-bni.png", Name = "BNI", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            };
 
             try
             {
                 categories.ForEach(async seed => await _categoryService.InsertSeedCategoryAsync(seed));
                 courses.ForEach(async seed => await _courseService.InsertSeedCourseAsync(seed));
+                payments.ForEach(async seed => await _paymentRepo.InsertPaymentAsync(seed));
                 return 1;
             }
             catch (System.Exception)

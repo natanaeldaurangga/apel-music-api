@@ -56,5 +56,19 @@ namespace ApelMusic.Controllers
             }
         }
 
+        [HttpGet("FindById/{id}")]
+        public async Task<IActionResult> GetCategoriesById([FromRoute] Guid id)
+        {
+            try
+            {
+                var result = await _categoryService.FindCategoryByIdAsync(id);
+                if (result == null) return NotFound();
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
     }
 }

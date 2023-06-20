@@ -31,6 +31,8 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<CategoryRepository>();
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<CourseScheduleRepository>();
+builder.Services.AddScoped<PaymentMethodRepository>();
+builder.Services.AddScoped<ShoppingCartRepository>();
 #endregion
 
 #region AddScoped Services
@@ -40,6 +42,8 @@ builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<ImageServices>();
 builder.Services.AddScoped<CourseService>();
 builder.Services.AddScoped<CourseScheduleService>();
+builder.Services.AddScoped<PaymentMethodService>();
+builder.Services.AddScoped<ShoppingCartService>();
 #endregion
 
 #region Email Configuration
@@ -72,7 +76,7 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero,
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = true, // INI HARUS TRUEEEEEE BIAR DI VALIDASI EXPIRATION TIME NYA NAELLLL
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
@@ -82,14 +86,19 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
+    // AddPolicy(Nama Policy, requireRole(Role dari jwtnya))
     options.AddPolicy("ADMIN", policy => policy.RequireRole("ADMIN"));
     options.AddPolicy("USER", policy => policy.RequireRole("USER"));
 });
 #endregion
 
+#region CORs settings
+string allowedOrigin = builder.Configuration.GetValue<string>("CORs:AllowedOrigin");
+
 builder.Services.AddCors(options => options.AddPolicy(name: "AllowedOrigins",
-    builder => builder.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod()
+    builder => builder.WithOrigins(allowedOrigin).AllowAnyHeader().AllowAnyMethod()
 ));
+#endregion
 
 var app = builder.Build();
 

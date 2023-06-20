@@ -47,6 +47,20 @@ namespace ApelMusic.Services
             }
         }
 
+        public async Task<Category?> FindCategoryByIdAsync(Guid id)
+        {
+            try
+            {
+                var result = await _categoryRepo.FindCategoryByIdAsync(id);
+                if (result.Count == 0) return null;
+                return result[0];
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<List<Category>> GetAllCategoriesAsync()
         {
             try

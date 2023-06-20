@@ -12,6 +12,7 @@ namespace ApelMusic.DTOs.Auth
         public Guid? Id { get; set; }
         public string? Name { get; set; }
         public string? Email { get; set; }
+        public string? Role { get; set; }
         public string? JwtToken { get; set; }
 
         [JsonIgnore]
@@ -19,5 +20,8 @@ namespace ApelMusic.DTOs.Auth
 
         [JsonIgnore]
         public User? User { get; set; }
+
+        [JsonIgnore]
+        public string? Error { get; set; }
     }
 }

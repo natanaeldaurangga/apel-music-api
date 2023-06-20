@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,6 +16,10 @@ namespace ApelMusic.Utility
             perPage = Math.Ceiling(perPage);
             return (int)perPage;
         }
+
+        #region METHOD UNTUK INSERT
+        // public async Task<int> InsertPaymentTaskAsync(SqlConnection conn, SqlTransaction transaction, )
+        #endregion
 
     }
 }

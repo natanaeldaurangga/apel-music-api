@@ -27,7 +27,8 @@ namespace ApelMusic.Database.Repositories
         }
 
         #region GET USER
-        public async Task<List<User>> UserPagedAsync(PageQueryRequest request, string column = "", string value = "")
+        // TODO: Lanjut untuk bikin pagination user
+        public async Task<List<User>> UserPagedAsync(PageQueryRequest pageQuery, string column = "", string value = "")
         {
             // 
             var users = new List<User>();
@@ -35,15 +36,93 @@ namespace ApelMusic.Database.Repositories
             try
             {
                 await conn.OpenAsync();
-                
+                var queryBuilder = new StringBuilder();
 
+                const string query = @"
+                    SELECT u.id as user_id,
+                           u.full_name as full_name,
+                           u.email as email,
+                           u.verified_at as verified_at,
+                           u.inactive as inactive
+                    FROM users u 
+                    WHERE (c.name LIKE @Name) 
+                ";
+
+                queryBuilder.Append(query);
+
+                if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
+                {
+                    queryBuilder.Append("AND (").Append(column).Append(" = @Value) ");
+                }
+
+                // Menentukan Ascending/Descending
+                string direction = string.Equals(pageQuery.Direction, "ASC", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
+
+                // Menentukan kolom mana yang akan disorting
+                string columnSorted = string.IsNullOrEmpty(pageQuery.SortBy) ? "c.full_name" : pageQuery.SortBy;
+
+                // Membuat query untuk "sort by 'column' 'asc/desc'"
+                string orderByQuery = $"ORDER BY {columnSorted} {direction} ";
+
+                queryBuilder.Append(orderByQuery);
+
+                const string pagingQuery = @"
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY 
+                ";
+
+                queryBuilder.Append(pagingQuery);
+
+                string finalQuery = queryBuilder.ToString();
+
+                var cmd = new SqlCommand(finalQuery);
+
+                int offset = (pageQuery.CurrentPage - 1) * pageQuery.PageSize;
+                string keyword = "%" + pageQuery.Keyword + "%";
+                cmd.Parameters.AddWithValue("@Name", keyword);
+
+                cmd.Parameters.AddWithValue("@OrderBy", pageQuery.SortBy);
+
+                cmd.Parameters.AddWithValue("@Offset", offset);
+                cmd.Parameters.AddWithValue("@PageSize", pageQuery.PageSize);
+
+                if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(column))
+                {
+                    cmd.Parameters.AddWithValue("@Value", string.IsNullOrEmpty(value) ? DBNull.Value : value);
+                }
+
+                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        var user = new User()
+                        {
+                            Id = reader.GetGuid("user_id"),
+                            FullName = reader.GetString("full_name"),
+                            Email = reader.GetString("email")
+                        };
+
+                        bool isVerifiedUser = !await reader.IsDBNullAsync(reader.GetOrdinal("verified_at"));
+                        if (isVerifiedUser)
+                        {
+                            user.Inactive = reader.GetDateTime("verified_at");
+                        }
+
+                        bool isActiveUser = await reader.IsDBNullAsync(reader.GetOrdinal("inactive"));
+                        if (!isActiveUser)
+                        {
+                            user.Inactive = reader.GetDateTime("inactive");
+                        }
+
+                        users.Add(user);
+                    }
+                }
+
+                return users;
             }
             catch (System.Exception)
             {
                 throw;
             }
-
-            return null;
         }
 
         // Method multi fungsi, kita bisa mencari user berdasarkan semua kolom yang ada di table user
@@ -209,7 +288,6 @@ namespace ApelMusic.Database.Repositories
                 await conn.CloseAsync();
             }
         }
-
         #endregion
 
         #region RESET PASSWORD

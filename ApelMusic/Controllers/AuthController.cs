@@ -19,10 +19,13 @@ namespace ApelMusic.Controllers
 
         private readonly EmailService _emailService;
 
-        public AuthController(AuthService authService, EmailService emailService)
+        private readonly IConfiguration _config;
+
+        public AuthController(AuthService authService, EmailService emailService, IConfiguration config)
         {
             _authService = authService;
             _emailService = emailService;
+            _config = config;
         }
 
         private async Task<int> SetRefreshToken(RefreshTokenResponse newRefreshToken, User user)
@@ -93,9 +96,11 @@ namespace ApelMusic.Controllers
             try
             {
                 bool result = await _authService.VerifyUserAsync(token);
+                string baseUrl = _config.GetValue<string>("CORs:AllowedOrigin");
+                string emailVerified = _config.GetValue<string>("CORs:EmailVerified");
                 if (result)
                 {
-                    return Ok("Email berhasil diverifikasi silahkan login.");
+                    return Redirect(baseUrl + emailVerified);
                 }
                 else
                 {
@@ -122,12 +127,17 @@ namespace ApelMusic.Controllers
                 var result = await _authService.LoginAsync(request);
                 if (result == null)
                 {
-                    return BadRequest("Username atau password salah.");
+                    return NotFound("Username atau password salah.");
                 }
 
-                if (result.User!.VerifiedAt == null)
+                if (string.Equals(result.Error, "UNVERIFIED"))
                 {
-                    return Unauthorized("Email anda belum diverifikasi, silahkan cek email anda.");
+                    return Unauthorized("Anda belum melakukan verifikasi email, silahkan cek email.");
+                }
+
+                if (string.Equals(result.Error, "INACTIVE"))
+                {
+                    return Unauthorized("Email atau password salah.");
                 }
 
                 return Ok(result);
@@ -140,12 +150,12 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost("RequestResetPassword")]
-        public async Task<IActionResult> RequestChangePassword([FromBody] ResetPasswordEmailRequest request)
+        public async Task<IActionResult> RequestResetPassword([FromBody] ResetPasswordEmailRequest request)
         {
             bool isUserExist = await _authService.IsUserAlreadyUsed(request.Email!);
             if (!isUserExist)
             {
-                return BadRequest("Email belum terdaftar.");
+                return NotFound("Email belum terdaftar.");
             }
             var resetPasswordUrl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/api/Auth/GetResetPasswordToken/";
 
@@ -184,12 +194,12 @@ namespace ApelMusic.Controllers
             return Ok("Silahkan cek email anda.");
         }
 
-
-        // METHOD di bawah ini hanya percobaan
         [HttpGet("GetResetPasswordToken/{token}")]
-        public async Task<IActionResult> TestGetPasswordToken([FromRoute] string token)
+        public IActionResult RedirectToResetPasswordForm([FromRoute] string token)
         {
-            return Ok(token);
+            string baseUrl = _config.GetValue<string>("CORs:AllowedOrigin");
+            string resetPassword = _config.GetValue<string>("CORs:ResetPassword");
+            return Redirect(baseUrl + resetPassword + token);
         }
 
         [HttpPost("ResetPassword/{token}")]
@@ -204,7 +214,7 @@ namespace ApelMusic.Controllers
             try
             {
                 _ = await _authService.ResetPasswordAsync(token, request);
-                return Ok("Password berhasil diperbaharui");
+                return Ok("Password berhasil direset");
             }
             catch (System.Exception)
             {

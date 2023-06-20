@@ -101,14 +101,14 @@ namespace ApelMusic.Database.Repositories
             }
         }
 
-        public async Task<List<Category>> FindAllCategoriesAsync()
-        {
-            return await FindCategoriesByAsync();
-        }
-
         public async Task<List<Category>> FindCategoryByIdAsync(Guid id)
         {
             return await FindCategoriesByAsync("id", id.ToString());
+        }
+
+        public async Task<List<Category>> FindAllCategoriesAsync()
+        {
+            return await FindCategoriesByAsync();
         }
 
         public async Task<List<Category>> FindCategoryByTagNameAsync(string tagName)

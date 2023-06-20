@@ -180,7 +180,18 @@ namespace ApelMusic.Services
 
             if (user.Inactive != null)
             {
-                return null;
+                return new LoginResponse()
+                {
+                    Error = "INACTIVE"
+                };
+            }
+
+            if (user.VerifiedAt == null)
+            {
+                return new LoginResponse()
+                {
+                    Error = "UNVERIFIED"
+                };
             }
 
             string token = GenerateJwtToken(user);
@@ -195,6 +206,7 @@ namespace ApelMusic.Services
                 Name = user.FullName,
                 Email = user.Email,
                 JwtToken = token,
+                Role = user.Role!.Name,
                 RefreshToken = refreshToken,
                 User = user
             };

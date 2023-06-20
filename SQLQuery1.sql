@@ -26,6 +26,21 @@ IF OBJECT_ID(N'dbo.categories', N'U') IS NOT NULL
 IF OBJECT_ID(N'dbo.courses', N'U') IS NOT NULL
 	DROP TABLE dbo.courses
 
+IF OBJECT_ID(N'dbo.course_schedules', N'U') IS NOT NULL
+	DROP TABLE dbo.course_schedules
+
+IF OBJECT_ID(N'payment_methods', N'U') IS NOT NULL
+	DROP TABLE dbo.payment_methods
+
+IF OBJECT_ID(N'dbo.shopping_cart', N'U') IS NOT NULL
+	DROP TABLE dbo.shopping_cart
+
+IF OBJECT_ID(N'dbo.invoices', N'U') IS NOT NULL
+	DROP TABLE dbo.invoices
+
+IF OBJECT_ID(N'dbo.users_courses', N'U') IS NOT NULL
+	DROP TABLE dbo.users_courses
+
 -- END: Drop semua table
 
 CREATE TABLE roles (
@@ -78,6 +93,7 @@ CREATE TABLE [courses] (
   [created_at] datetime DEFAULT GETDATE(),
   [updated_at] datetime DEFAULT GETDATE(),
   [inactive] datetime
+  [price] DECIMAL(10, 2)
 )
 GO
 
@@ -85,6 +101,38 @@ CREATE TABLE course_schedules(
 	id UNIQUEIDENTIFIER PRIMARY KEY,
 	course_id UNIQUEIDENTIFIER NOT NULL,
 	course_date DATETIME NOT NULL
+);
+
+
+CREATE TABLE payment_methods (
+	[id] UNIQUEIDENTIFIER PRIMARY KEY,
+	[image] VARCHAR(255),
+	[name] VARCHAR(100) NOT NULL,
+	created_at DATETIME NOT NULL,
+	updated_at DATETIME NOT NULL,
+	inactive DATETIME
+);
+
+CREATE TABLE shopping_cart (
+	[id] UNIQUEIDENTIFIER PRIMARY KEY,
+	[user_id] UNIQUEIDENTIFIER,
+	[course_id] UNIQUEIDENTIFIER,
+	[course_schedule] DATETIME NOT NULL
+);
+
+CREATE TABLE invoices (
+	id UNIQUEIDENTIFIER PRIMARY KEY,
+	invoice_number VARCHAR(10) NOT NULL UNIQUE,
+	purchase_date DATETIME NOT NULL DEFAULT GETDATE(),
+	payment_method_id UNIQUEIDENTIFIER
+);
+
+CREATE TABLE users_courses (
+	[user_id] UNIQUEIDENTIFIER NOT NULL,
+	course_id UNIQUEIDENTIFIER NOT NULL,
+	course_schedule DATETIME NOT NULL,
+	invoice_id UNIQUEIDENTIFIER
+	purchase_price DECIMAL(10, 2)
 );
 
 IF OBJECT_ID(N'dbo.roles', N'U') IS NOT NULL
@@ -102,11 +150,12 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE = 'BASE TABLE' 
 AND TABLE_CATALOG = 'ApelMusicDB';
 
-EXEC sp_help 'courses';
+EXEC sp_help 'shopping_cart';
 
 SELECT * FROM roles;
 SELECT * FROM users;
 SELECT c.* FROM categories c;
+SELECT TOP(5) COUNT(*) FROM categories;
 SELECT * FROM courses ORDER BY [name];
 SELECT * FROM course_schedules ORDER BY id ASC;
 SELECT COUNT(*) FROM course_schedules;
@@ -136,4 +185,18 @@ FROM users u
 LEFT JOIN roles r ON u.role_id = r.id;
 
 UPDATE users SET verfied_at = GETDATE() WHERE verification_token = '';
+
+EXEC sp_help 'courses';
+
+SELECT sc.id as id,
+    sc.user_id as user_id,
+    sc.course_id as course_id,
+    sc.course_schedule as course_schedule,
+    c.name as course_name,
+    c.image as course_image,
+    c.price as course_price
+FROM shopping_cart sc 
+LEFT JOIN courses c ON c.id = sc.course_id;
+
+SELECT * FROM courses;
 
