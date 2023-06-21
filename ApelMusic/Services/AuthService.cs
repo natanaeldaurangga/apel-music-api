@@ -53,9 +53,11 @@ namespace ApelMusic.Services
 
             var emailClaim = new Claim(ClaimTypes.Email, user.Email!);
             var roleClaim = new Claim(ClaimTypes.Role, user.Role!.Name!);
+            var idClaim = new Claim("id", user.Id.ToString());
+            var nameClaim = new Claim(ClaimTypes.Name, user.FullName ?? "");
 
             tokenDescriptor.Subject = new ClaimsIdentity(new Claim[]{
-                emailClaim, roleClaim
+                idClaim, nameClaim, emailClaim, roleClaim
             });
 
             tokenDescriptor.Expires = DateTime.Now.AddHours(5);

@@ -101,6 +101,7 @@ namespace ApelMusic.Database.Repositories
                             Id = reader.GetGuid("id"),
                             UserId = reader.GetGuid("user_id"),
                             CourseId = reader.GetGuid("course_id"),
+                            CourseSchedule = reader.GetDateTime("course_schedule"),
                             Course = new Course()
                             {
                                 Id = reader.GetGuid("course_id"),
@@ -133,25 +134,42 @@ namespace ApelMusic.Database.Repositories
         #endregion
 
         #region METHODs untuk delete shopping cart
-        public async Task<int> DeleteCartTaskAsync(SqlConnection conn, SqlTransaction transaction, Guid id)
+        public async Task<int> DeleteCartTaskAsync(SqlConnection conn, SqlTransaction transaction, List<Guid> ids)
         {
+            var queryBuilder = new StringBuilder();
             const string query = @"
-                DELETE FROM shopping_cart WHERE id = @Id
+                DELETE FROM shopping_cart WHERE id IN (
             ";
 
-            SqlCommand cmd = new(query, conn, transaction);
-            cmd.Parameters.AddWithValue("@Id", id);
+            queryBuilder.Append(query);
+
+            for (int i = 0; i < ids.Count; i++)
+            {
+                queryBuilder.Append("@Value").Append(i);
+                if (i < ids.Count - 1) queryBuilder.Append(", ");
+                else queryBuilder.Append(");");
+            }
+
+            var finalQuery = queryBuilder.ToString();
+
+            SqlCommand cmd = new(finalQuery, conn, transaction);
+
+            for (int i = 0; i < ids.Count; i++)
+            {
+                cmd.Parameters.AddWithValue("@Value" + i, ids[i]);
+            }
+
             return await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task<int> DeleteCartAsync(Guid id)
+        public async Task<int> DeleteCartAsync(List<Guid> ids)
         {
             using SqlConnection conn = new(this.ConnectionString);
             await conn.OpenAsync();
             SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
             try
             {
-                _ = await DeleteCartTaskAsync(conn, transaction, id);
+                _ = await DeleteCartTaskAsync(conn, transaction, ids);
                 transaction.Commit();
                 return 1;
             }
@@ -176,7 +194,7 @@ namespace ApelMusic.Database.Repositories
                 VALUES (@Id, @UserId, @CourseId, @CourseSchedule)
             ";
 
-            SqlCommand cmd = new(query, conn, transaction);
+            using SqlCommand cmd = new(query, conn, transaction);
             cmd.Parameters.AddWithValue("@Id", shoppingCart.Id);
             cmd.Parameters.AddWithValue("@UserId", shoppingCart.UserId);
             cmd.Parameters.AddWithValue("@CourseId", shoppingCart.CourseId);

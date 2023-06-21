@@ -1,3 +1,4 @@
+using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,9 +66,9 @@ namespace ApelMusic.Services
             }
         }
 
-        public async Task<PageQueryResponse<CourseSummaryResponse>?> PaginateCourseAsync(PageQueryRequest request, string column = "", string value = "")
+        public async Task<PageQueryResponse<CourseSummaryResponse>?> PaginateCourseAsync(PageQueryRequest request, IDictionary<string, string>? fields = null, IDictionary<string, string>? exceptedFields = null)
         {
-            var courses = await _courseRepo.CoursePagedAsync(request, column, value);
+            var courses = await _courseRepo.CoursePagedAsync(request, fields, exceptedFields);
 
             List<CourseSummaryResponse> coursesSummary = courses.ConvertAll(course =>
             {
@@ -75,7 +76,7 @@ namespace ApelMusic.Services
                 {
                     Id = course.Id,
                     Name = course.Name!,
-                    Category = new CategorySummaryResponse() { Id = course.Category!.Id, Name = course.Category!.Name! },
+                    Category = new CategorySummaryResponse() { Id = course.Category!.Id, Name = course.Category!.TagName! },
                     ImageName = course.Image!,
                     Price = course.Price
                 };
@@ -97,6 +98,26 @@ namespace ApelMusic.Services
         public async Task<List<Course>> FindCourseById(Guid courseId)
         {
             return await _courseRepo.FindCourseById(courseId);
+        }
+
+        public async Task<List<CourseSummaryResponse>> FindCourseByIds(List<Guid> ids)
+        {
+            var results = await _courseRepo.FindCourseByIdInAsync(ids);
+            return results.ConvertAll(course =>
+            {
+                return new CourseSummaryResponse()
+                {
+                    Id = course.Id,
+                    Name = course.Name!,
+                    ImageName = course.Image!,
+                    Price = course.Price,
+                    Category = new CategorySummaryResponse()
+                    {
+                        Id = course.Category!.Id,
+                        Name = course.Category!.Name!
+                    }
+                };
+            });
         }
 
         public async Task<int> InsertCourseAsync(CreateCourseRequest request)

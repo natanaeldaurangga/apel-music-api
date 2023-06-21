@@ -25,7 +25,7 @@ namespace ApelMusic.Database.Repositories
         }
 
         #region METHODs untuk find payment
-        public async Task<List<PaymentMethod>> FindPaymentByAsync(string column = "", string value = "")
+        public async Task<List<PaymentMethod>> FindPaymentByAsync(IDictionary<string, string>? fields = null)
         {
             var payments = new List<PaymentMethod>();
             using SqlConnection conn = new(ConnectionString);
@@ -46,20 +46,36 @@ namespace ApelMusic.Database.Repositories
 
                 queryBuilder.Append(query1);
 
-                if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
+                // Build query untuk where clause dari tiap column value pair pada parameter (dictionary)
+                if (fields != null)
                 {
-                    queryBuilder.Append(" WHERE ").Append(column).Append(" = @Value");
+                    queryBuilder.Append(" WHERE ");
+
+                    for (int i = 0; i < fields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
+                        queryBuilder.Append(colVal.Key).Append(" = @Value").Append(i);
+
+                        if (i != fields.Count - 1) queryBuilder.Append(" AND ");
+                        else queryBuilder.Append(' ');
+                    }
                 }
 
                 queryBuilder.Append(';');
 
                 string finalQuery = queryBuilder.ToString();
+                _logger.LogInformation("finalQuery: {}", finalQuery);
 
                 var cmd = new SqlCommand(finalQuery, conn);
 
-                if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
+                // Memasang parameter ke tiap @Value dari query yang sudah dibuild
+                if (fields != null)
                 {
-                    cmd.Parameters.AddWithValue("@Value", value);
+                    for (int i = 0; i < fields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
+                        cmd.Parameters.AddWithValue("@Value" + i, colVal.Value);
+                    }
                 }
 
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
@@ -99,7 +115,11 @@ namespace ApelMusic.Database.Repositories
 
         public async Task<List<PaymentMethod>> FindPaymentByIdAsync(Guid paymentId)
         {
-            return await FindPaymentByAsync("id", paymentId.ToString());
+            var cols = new Dictionary<string, string>()
+            {
+                {"id", paymentId.ToString()}
+            };
+            return await FindPaymentByAsync(cols);
         }
 
         #endregion

@@ -12,20 +12,23 @@ namespace ApelMusic.Services
     {
         private readonly ShoppingCartRepository _cartRepo;
 
+        private readonly CourseRepository _courseRepo;
+
         private readonly ILogger<ShoppingCartRepository> _logger;
 
-        public ShoppingCartService(ShoppingCartRepository cartRepo, ILogger<ShoppingCartRepository> logger)
+        public ShoppingCartService(ShoppingCartRepository cartRepo, ILogger<ShoppingCartRepository> logger, CourseRepository courseRepo)
         {
             _cartRepo = cartRepo;
+            _courseRepo = courseRepo;
             _logger = logger;
         }
 
-        public async Task<int> InsertCartAsync(CreateCartRequest request)
+        public async Task<int> InsertCartAsync(Guid userId, CreateCartRequest request)
         {
             var cart = new ShoppingCart()
             {
                 Id = Guid.NewGuid(),
-                UserId = request.UserId,
+                UserId = userId,
                 CourseId = request.CourseId,
                 CourseSchedule = request.CourseSchedule
             };
@@ -35,7 +38,15 @@ namespace ApelMusic.Services
 
         public async Task<List<ShoppingCart>> FindCartByUserIdAsync(Guid userId)
         {
-            return await _cartRepo.FindCartByUserIdAsync(userId);
+            var results = await _cartRepo.FindCartByUserIdAsync(userId);
+            results.ForEach(async (shoppingCart) =>
+            {
+                var course = await _courseRepo.FindCourseById(shoppingCart.CourseId);
+                if (course.Count == 0) shoppingCart.Course = null;
+                else shoppingCart.Course = course[0];
+            });
+
+            return results;
         }
 
         public async Task<List<ShoppingCart>> FindCartByIdAsync(List<Guid> ids)
@@ -45,7 +56,7 @@ namespace ApelMusic.Services
 
         public async Task<int> DeleteCartByIdAsync(List<Guid> cartIds)
         {
-            cartIds.ForEach(async id => await _cartRepo.DeleteCartAsync(id));
+            _ = await _cartRepo.DeleteCartAsync(cartIds);
             return 1;
         }
     }

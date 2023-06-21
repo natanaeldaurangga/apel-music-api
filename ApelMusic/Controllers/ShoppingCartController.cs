@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using ApelMusic.DTOs.Purchase;
 using ApelMusic.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApelMusic.Controllers
 {
@@ -22,7 +24,7 @@ namespace ApelMusic.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost, Authorize]
         public async Task<IActionResult> InsertCart([FromBody] CreateCartRequest request)
         {
             if (!ModelState.IsValid)
@@ -32,7 +34,9 @@ namespace ApelMusic.Controllers
 
             try
             {
-                var result = await _cartService.InsertCartAsync(request);
+                ClaimsPrincipal user = HttpContext.User;
+                Guid userId = Guid.Parse(user.FindFirstValue("id"));
+                var result = await _cartService.InsertCartAsync(userId, request);
                 return Ok("Course berhasil dimasukkan ke dalam keranjang.");
             }
             catch (System.Exception)
@@ -41,11 +45,13 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> FindCartByUserId([FromRoute] Guid userId)
+        [HttpGet, Authorize]
+        public async Task<IActionResult> FindCartByUserId()
         {
             try
             {
+                ClaimsPrincipal user = HttpContext.User;
+                Guid userId = Guid.Parse(user.FindFirstValue("id"));
                 var result = await _cartService.FindCartByUserIdAsync(userId);
                 return Ok(result);
             }

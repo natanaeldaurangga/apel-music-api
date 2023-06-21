@@ -60,14 +60,14 @@ namespace ApelMusic.Database.Seeds
 
             var courses = new List<SeedCourseRequest>()
             {
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Kursus Drummer Special Coach (Eno Netral)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse1", Description = dummyDescription, Price = 8_500_000, Schedules = dummySchedules },
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "[Beginner] Guitar class for kids", CategoryId = categories[2].Id, Image = "Constant%5C%5CCourse2", Description = dummyDescription, Price = 1_600_000, Schedules = dummySchedules },
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Biola Mid-Level Course", CategoryId = categories[4].Id, Image = "Constant%5C%5CCourse3", Description = dummyDescription, Price = 3_000_000, Schedules = dummySchedules },
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Drummer for Kids (Level Basics/1)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse4", Description = dummyDescription, Price = 2_200_000, Schedules = dummySchedules },
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Kursus Piano: From Zero to Pro (Full Package)", CategoryId = categories[1].Id, Image = "Constant%5C%5CCourse5", Description = dummyDescription, Price = 11_650_000, Schedules = dummySchedules },
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Expert Level Saxophone", CategoryId = categories[7].Id, Image = "Constant%5C%5CCourse6", Description = dummyDescription, Price = 7_350_000, Schedules = dummySchedules },
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Expert Level Drummer Lessons", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse7", Description = dummyDescription, Price = 5_450_000, Schedules = dummySchedules },
-                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "From Zero to Professional Drummer (Complit Package)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse8", Description = dummyDescription, Price = 13_000_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Kursus Drummer Special Coach (Eno Netral)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse1.png", Description = dummyDescription, Price = 8_500_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "[Beginner] Guitar class for kids", CategoryId = categories[2].Id, Image = "Constant%5C%5CCourse2.png", Description = dummyDescription, Price = 1_600_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Biola Mid-Level Course", CategoryId = categories[4].Id, Image = "Constant%5C%5CCourse3.png", Description = dummyDescription, Price = 3_000_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Drummer for Kids (Level Basics/1)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse4.png", Description = dummyDescription, Price = 2_200_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Kursus Piano: From Zero to Pro (Full Package)", CategoryId = categories[1].Id, Image = "Constant%5C%5CCourse5.png", Description = dummyDescription, Price = 11_650_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Expert Level Saxophone", CategoryId = categories[7].Id, Image = "Constant%5C%5CCourse6.png", Description = dummyDescription, Price = 7_350_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "Expert Level Drummer Lessons", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse7.png", Description = dummyDescription, Price = 5_450_000, Schedules = dummySchedules },
+                new SeedCourseRequest(){ Id = Guid.NewGuid(), Name = "From Zero to Professional Drummer (Complit Package)", CategoryId = categories[0].Id, Image = "Constant%5C%5CCourse8.png", Description = dummyDescription, Price = 13_000_000, Schedules = dummySchedules },
             };
 
             var payments = new List<PaymentMethod>()

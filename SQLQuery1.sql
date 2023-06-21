@@ -92,7 +92,7 @@ CREATE TABLE [courses] (
   [description] text,
   [created_at] datetime DEFAULT GETDATE(),
   [updated_at] datetime DEFAULT GETDATE(),
-  [inactive] datetime
+  [inactive] datetime,
   [price] DECIMAL(10, 2)
 )
 GO
@@ -121,7 +121,8 @@ CREATE TABLE shopping_cart (
 );
 
 CREATE TABLE invoices (
-	id UNIQUEIDENTIFIER PRIMARY KEY,
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	user_id UNIQUEIDENTIFIER NOT NULL,
 	invoice_number VARCHAR(10) NOT NULL UNIQUE,
 	purchase_date DATETIME NOT NULL DEFAULT GETDATE(),
 	payment_method_id UNIQUEIDENTIFIER
@@ -131,7 +132,7 @@ CREATE TABLE users_courses (
 	[user_id] UNIQUEIDENTIFIER NOT NULL,
 	course_id UNIQUEIDENTIFIER NOT NULL,
 	course_schedule DATETIME NOT NULL,
-	invoice_id UNIQUEIDENTIFIER
+	invoice_id INT NOT NULL,
 	purchase_price DECIMAL(10, 2)
 );
 
@@ -159,6 +160,36 @@ SELECT TOP(5) COUNT(*) FROM categories;
 SELECT * FROM courses ORDER BY [name];
 SELECT * FROM course_schedules ORDER BY id ASC;
 SELECT COUNT(*) FROM course_schedules;
+SELECT * FROM invoices;
+SELECT * FROM users_courses;
+SELECT i.id,
+	   i.invoice_number,
+	   i.user_id,
+	   u.full_name as user_name,
+	   i.purchase_date, 
+	   t.quantity,
+	   t.total_price,
+	   pmt.id as payment_id,
+	   pmt.name as payment_name
+FROM invoices i
+JOIN (
+	SELECT COUNT(uc.course_id) AS quantity, SUM(uc.purchase_price) AS total_price, uc.invoice_id
+	FROM users_courses uc
+	GROUP BY uc.invoice_id
+) t ON t.invoice_id = i.id
+JOIN payment_methods pmt ON pmt.id = i.payment_method_id
+JOIN users u ON u.id = i.user_id;
+
+SELECT uc.course_id, c.name as course_name, uc.course_schedule, ct.name as category_name, uc.purchase_price 
+FROM users_courses uc
+LEFT JOIN courses c ON c.id = uc.course_id
+LEFT JOIN categories ct ON ct.id = c.category_id;
+
+SELECT * FROM shopping_cart;
+
+SELECT COUNT(uc.course_id) AS quantity, SUM(uc.purchase_price) AS total_price, uc.invoice_id
+FROM users_courses uc
+GROUP BY uc.invoice_id;
 
 SELECT * FROM courses ORDER BY [name] OFFSET (4 - 1) * 4 ROWS FETCH NEXT 4 ROWS ONLY;
 
@@ -186,7 +217,7 @@ LEFT JOIN roles r ON u.role_id = r.id;
 
 UPDATE users SET verfied_at = GETDATE() WHERE verification_token = '';
 
-EXEC sp_help 'courses';
+EXEC sp_help 'users_courses';
 
 SELECT sc.id as id,
     sc.user_id as user_id,
@@ -198,5 +229,23 @@ SELECT sc.id as id,
 FROM shopping_cart sc 
 LEFT JOIN courses c ON c.id = sc.course_id;
 
+SELECT * FROM courses WHERE id != '7B85853C-3030-4188-A055-9C25BA60C1BE';
 SELECT * FROM courses;
 
+DROP TABLE coba_user;
+
+CREATE TABLE coba_user(
+	_ID int IDENTITY(1,1) not null,
+	ID as RIGHT('0000' + CONVERT(varchar(5),_ID),5) PRIMARY KEY,
+	NAMA VARCHAR(100)
+);
+
+INSERT INTO coba_user(NAMA) values ('Ipen'), ('Cupen'), ('Nael');
+
+SELECT * FROM coba_user;
+
+SELECT * FROM shopping_cart;
+
+SELECT * FROM users;
+
+DELETE FROM users WHERE id = 'A5406F9C-4807-4169-8FC1-CBC26BB8CD04';

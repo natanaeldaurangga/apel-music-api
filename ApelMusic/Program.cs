@@ -33,6 +33,8 @@ builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<CourseScheduleRepository>();
 builder.Services.AddScoped<PaymentMethodRepository>();
 builder.Services.AddScoped<ShoppingCartRepository>();
+builder.Services.AddScoped<InvoiceRepository>();
+builder.Services.AddScoped<UsersCoursesRepository>();
 #endregion
 
 #region AddScoped Services
@@ -44,6 +46,7 @@ builder.Services.AddScoped<CourseService>();
 builder.Services.AddScoped<CourseScheduleService>();
 builder.Services.AddScoped<PaymentMethodService>();
 builder.Services.AddScoped<ShoppingCartService>();
+builder.Services.AddScoped<PurchaseService>();
 #endregion
 
 #region Email Configuration

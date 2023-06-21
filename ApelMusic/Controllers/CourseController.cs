@@ -63,11 +63,21 @@ namespace ApelMusic.Controllers
         }
 
         [HttpGet("GroupByCategory/{categoryId}")]
-        public async Task<IActionResult> GetCoursesByCategory([FromQuery] PageQueryRequest request, [FromRoute] Guid categoryId)
+        public async Task<IActionResult> GetCoursesByCategory([FromQuery] PageQueryRequest request, [FromRoute] Guid categoryId, [FromQuery] Guid exceptedCourseId)
         {
             try
             {
-                var result = await _courseService.PaginateCourseAsync(request, "c.category_id", categoryId.ToString());
+                var fields = new Dictionary<string, string>()
+                {
+                    {"category_id", categoryId.ToString()}
+                };
+
+                var exceptedFields = new Dictionary<string, string>()
+                {
+                    {"c.id", exceptedCourseId.ToString()}
+                };
+
+                var result = await _courseService.PaginateCourseAsync(request, fields, exceptedFields);
                 if (result!.Items.Count == 0)
                 {
                     return NotFound();
@@ -91,6 +101,21 @@ namespace ApelMusic.Controllers
             }
             catch (System.Exception)
             {
+                throw;
+            }
+        }
+
+        [HttpPost("GetByIds")]
+        public async Task<IActionResult> GetCourseByIds([FromBody] List<Guid> courseIds)
+        {
+            try
+            {
+                var result = await _courseService.FindCourseByIds(courseIds);
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+
                 throw;
             }
         }

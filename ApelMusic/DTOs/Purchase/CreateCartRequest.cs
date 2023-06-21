@@ -9,9 +9,6 @@ namespace ApelMusic.DTOs.Purchase
     public class CreateCartRequest
     {
         [Required]
-        public Guid UserId { get; set; }
-
-        [Required]
         public Guid CourseId { get; set; }
 
         [Required]

@@ -241,12 +241,11 @@ namespace ApelMusic.Database.Migrations
         {
             const string query = @"
                 CREATE TABLE invoices (
-                    id UNIQUEIDENTIFIER PRIMARY KEY,
-                    invoice_number VARCHAR(10) NOT NULL UNIQUE,
+                    id INT IDENTITY(1, 1) PRIMARY KEY,
+                    invoice_number AS 'AP' + RIGHT('000000' + CONVERT(VARCHAR(5), id), 5),
                     user_id UNIQUEIDENTIFIER NOT NULL,
                     purchase_date DATETIME NOT NULL DEFAULT GETDATE(),
-                    payment_method_id UNIQUEIDENTIFIER,
-                    total_price DECIMAL(10, 2)
+                    payment_method_id UNIQUEIDENTIFIER
                 );
             ";
 
@@ -260,7 +259,7 @@ namespace ApelMusic.Database.Migrations
                     user_id UNIQUEIDENTIFIER NOT NULL,
                     course_id UNIQUEIDENTIFIER NOT NULL,
                     course_schedule DATETIME NOT NULL,
-                    invoice_id UNIQUEIDENTIFIER NOT NULL,
+                    invoice_id INT NOT NULL,
                     purchase_price DECIMAL(10, 2)
                 );
             ";

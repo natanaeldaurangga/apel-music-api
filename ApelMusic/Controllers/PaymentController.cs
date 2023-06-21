@@ -64,12 +64,27 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("ForAdmin")]
         public async Task<IActionResult> FindAllPaymentMethod()
         {
             try
             {
                 var result = await _paymentService.FindAllPaymentAsync();
+                if (result.Count == 0) return NotFound();
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("ForUser")]
+        public async Task<IActionResult> FindAllPaymentMethodUser()
+        {
+            try
+            {
+                var result = await _paymentService.FindActivePaymentAsync();
                 if (result.Count == 0) return NotFound();
                 return Ok(result);
             }

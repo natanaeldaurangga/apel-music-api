@@ -54,10 +54,10 @@ namespace ApelMusic.Services
             var filePath = Path.Combine(_env.ContentRootPath, _imagePath + fileName);
             if (!File.Exists(filePath))
             {
-                _logger.LogInformation("Gambar tidak ketemu bro {}", filePath);
+                // _logger.LogInformation("Gambar tidak ketemu bro {}", filePath);
                 throw new FileNotFoundException();
             }
-            _logger.LogInformation("Gambar ketemu bro {}", filePath);
+            // _logger.LogInformation("Gambar ketemu bro {}", filePath);
 
             File.Delete(filePath);
             return true;

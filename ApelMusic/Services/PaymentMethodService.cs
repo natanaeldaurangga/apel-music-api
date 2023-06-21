@@ -86,6 +86,21 @@ namespace ApelMusic.Services
             });
         }
 
+        public async Task<List<PaymentResponse>> FindActivePaymentAsync()
+        {
+            var result = await _paymentRepo.FindAllPaymentAsync();
+
+            return result.Where(pmt => pmt.Inactive == null).Select(pmt =>
+            {
+                return new PaymentResponse()
+                {
+                    Id = pmt.Id,
+                    Image = pmt.Image,
+                    Name = pmt.Name
+                };
+            }).ToList();
+        }
+
         public async Task<PaymentResponse?> FindPaymentByIdAsync(Guid paymentId)
         {
             var results = await _paymentRepo.FindPaymentByIdAsync(paymentId);

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Text;
 using System;
 using System.Collections.Generic;
@@ -26,20 +27,104 @@ namespace ApelMusic.Database.Repositories
         }
 
         #region Method untuk get course
-
-        public async Task<int> GetRowCount()
+        public async Task<List<Course>> FindCourseByIdInAsync(List<Guid> ids)
         {
+            var courses = new List<Course>();
             using SqlConnection conn = new(ConnectionString);
-            await conn.OpenAsync();
-            const string query = "SELECT COUNT(*) FROM courses";
+            try
+            {
+                await conn.OpenAsync();
+                var queryBuilder = new StringBuilder();
 
-            using SqlCommand command = new(query, conn);
-            // Execute the scalar query to get the row count
-            return (int)command.ExecuteScalar();
+                const string query1 = @"
+                    SELECT c.id as id,
+                           c.name as name,
+                           c.category_id as category_id,
+                           c.image as image,
+                           c.description as description,
+                           c.price as price,
+                           c.created_at as created_at,
+                           c.updated_at as updated_at,
+                           c.inactive as inactive,
+                           ct.tag_name as category_tag_name
+                    FROM courses c 
+                    LEFT JOIN categories ct ON ct.id = c.category_id 
+                ";
+
+                queryBuilder.Append(query1);
+
+                if (ids != null)
+                {
+                    queryBuilder.Append(" WHERE ").Append("c.id").Append(" IN (");
+                    for (int i = 0; i < ids.Count; i++)
+                    {
+                        queryBuilder.Append("@Value").Append(i);
+                        if (i < ids.Count - 1)
+                        {
+                            queryBuilder.Append(", ");
+                        }
+                    }
+                    queryBuilder.Append(") ");
+                }
+
+                queryBuilder.Append(';');
+
+                var finalQuery = queryBuilder.ToString();
+
+                var cmd = new SqlCommand(finalQuery, conn);
+
+                if (ids != null)
+                {
+                    for (int i = 0; i < ids.Count; i++)
+                    {
+                        cmd.Parameters.AddWithValue("@Value" + i, ids[i]);
+                    }
+                }
+
+                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        var course = new Course()
+                        {
+                            Id = reader.GetGuid("id"),
+                            Name = reader.GetString("name"),
+                            CategoryId = reader.GetGuid("category_id"),
+                            Image = reader.GetString("image"),
+                            Price = reader.GetDecimal("price"),
+                            Description = reader.GetString("description"),
+                            CreatedAt = reader.GetDateTime("created_at"),
+                            UpdatedAt = reader.GetDateTime("updated_at")
+                        };
+
+                        var category = new Category()
+                        {
+                            Id = reader.GetGuid("category_id"),
+                            TagName = reader.GetString("category_tag_name")
+                        };
+
+                        bool isActiveCourse = await reader.IsDBNullAsync(reader.GetOrdinal("inactive"));
+                        if (!isActiveCourse)
+                        {
+                            course.Inactive = reader.GetDateTime("inactive");
+                        }
+
+                        course.Category = category;
+
+                        courses.Add(course);
+                    }
+                }
+                return courses;
+            }
+            catch (System.Exception)
+            {
+
+                throw;
+            }
         }
 
-        // Fungsi ini mereturn 2 tipe data yaitu List courses dan juga totalRows dari query (int)
-        public async Task<List<Course>> CoursePagedAsync(PageQueryRequest pageQuery, string column = "", string value = "")
+        // Method untuk paginasi course dengan menggunakan
+        public async Task<List<Course>> CoursePagedAsync(PageQueryRequest pageQuery, IDictionary<string, string>? fields = null, IDictionary<string, string>? exceptedFields = null)
         {
             var courses = new List<Course>();
             using SqlConnection conn = new(ConnectionString);
@@ -61,14 +146,36 @@ namespace ApelMusic.Database.Repositories
                            ct.tag_name as category_tag_name
                     FROM courses c 
                     LEFT JOIN categories ct ON ct.id = c.category_id 
-                    WHERE (c.name LIKE @Name) 
+                    WHERE (UPPER(c.name) LIKE UPPER(@Name)) 
                 ";
                 queryBuilder.Append(query);
 
-                // Mengecek apakah pemanggilan fungsi menspesifikan column yang dicari
-                if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
+                // Build Query untuk pasangan column dan value (EQUAL)
+                if (fields != null)
                 {
-                    queryBuilder.Append("AND (").Append(column).Append(" = @Value)");
+                    queryBuilder.Append("AND (");
+                    for (int i = 0; i < fields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
+                        queryBuilder.Append(colVal.Key).Append(" = @Value").Append(i);
+
+                        if (i != fields.Count - 1) queryBuilder.Append(" AND ");
+                        else queryBuilder.Append(") ");
+                    }
+                }
+
+                // Build Query untuk pasangan column dan value (NOT EQUAL)
+                if (exceptedFields != null)
+                {
+                    queryBuilder.Append("AND (");
+                    for (int i = 0; i < exceptedFields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = exceptedFields.ElementAt(i);
+                        queryBuilder.Append(colVal.Key).Append(" != @ExcValue").Append(i);
+
+                        if (i != exceptedFields.Count - 1) queryBuilder.Append(" AND ");
+                        else queryBuilder.Append(") ");
+                    }
                 }
 
                 // Menentukan Ascending atau Descending
@@ -80,7 +187,7 @@ namespace ApelMusic.Database.Repositories
 
                 queryBuilder.Append(orderByQuery);
 
-                string pagingQuery = @"
+                const string pagingQuery = @"
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY 
                 ";
 
@@ -92,16 +199,31 @@ namespace ApelMusic.Database.Repositories
 
                 int offset = (pageQuery.CurrentPage - 1) * pageQuery.PageSize;
                 string keyword = "%" + pageQuery.Keyword + "%";
-                cmd.Parameters.AddWithValue("@Name", keyword);
+                cmd.Parameters.AddWithValue("@Name", keyword ?? "");
 
-                cmd.Parameters.AddWithValue("@OrderBy", pageQuery.SortBy);
+                cmd.Parameters.AddWithValue("@OrderBy", pageQuery.SortBy ?? "name");
 
                 cmd.Parameters.AddWithValue("@Offset", offset);
                 cmd.Parameters.AddWithValue("@PageSize", pageQuery.PageSize);
 
-                if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(column))
+                // Memasang parameter pada tiap @Value
+                if (fields != null)
                 {
-                    cmd.Parameters.AddWithValue("@Value", string.IsNullOrEmpty(value) ? DBNull.Value : value);
+                    for (int i = 0; i < fields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
+                        cmd.Parameters.AddWithValue("@Value" + i, colVal.Value);
+                    }
+                }
+
+                // Memasang parameter pada tiap @ExcValue
+                if (exceptedFields != null)
+                {
+                    for (int i = 0; i < exceptedFields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = exceptedFields.ElementAt(i);
+                        cmd.Parameters.AddWithValue("@ExcValue" + i, colVal.Value);
+                    }
                 }
 
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
@@ -145,7 +267,8 @@ namespace ApelMusic.Database.Repositories
             }
         }
 
-        private async Task<List<Course>> FindCoursesByAsync(string column = "", string value = "")
+        // Method untuk find course dengan menggunakan column field pair (WHERE column = field)
+        private async Task<List<Course>> FindCoursesByAsync(IDictionary<string, string>? fields = null)
         {
             var courses = new List<Course>();
             using SqlConnection conn = new(ConnectionString);
@@ -171,9 +294,18 @@ namespace ApelMusic.Database.Repositories
 
                 queryBuilder.Append(query1);
 
-                if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
+                if (fields != null)
                 {
-                    queryBuilder.Append(" WHERE ").Append(column).Append(" = @Value");
+                    queryBuilder.Append(" WHERE ");
+
+                    for (int i = 0; i < fields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
+                        queryBuilder.Append(colVal.Key).Append(" = @Value").Append(i);
+
+                        if (i != fields.Count - 1) queryBuilder.Append(" AND ");
+                        else queryBuilder.Append(' ');
+                    }
                 }
 
                 queryBuilder.Append(';');
@@ -182,9 +314,13 @@ namespace ApelMusic.Database.Repositories
 
                 var cmd = new SqlCommand(finalQuery, conn);
 
-                if (!string.IsNullOrEmpty(column) && !string.IsNullOrWhiteSpace(column))
+                if (fields != null)
                 {
-                    cmd.Parameters.AddWithValue("@Value", value);
+                    for (int i = 0; i < fields.Count; i++)
+                    {
+                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
+                        cmd.Parameters.AddWithValue("@Value" + i, colVal.Value);
+                    }
                 }
 
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
@@ -237,7 +373,11 @@ namespace ApelMusic.Database.Repositories
 
         public async Task<List<Course>> FindCourseById(Guid courseId)
         {
-            return await FindCoursesByAsync("c.id", courseId.ToString());
+            var fields = new Dictionary<string, string>()
+            {
+                {"c.id", courseId.ToString()}
+            };
+            return await FindCoursesByAsync(fields);
         }
 
         #endregion

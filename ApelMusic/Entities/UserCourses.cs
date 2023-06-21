@@ -9,7 +9,11 @@ namespace ApelMusic.Entities
     {
         public Guid UserId { get; set; }
 
-        public Guid InvoiceId { get; set; }
+        public Guid CourseId { get; set; }
+
+        public int InvoiceId { get; set; }
+
+        public Invoice? Invoice { get; set; }
 
         public DateTime CourseSchedule { get; set; }
 

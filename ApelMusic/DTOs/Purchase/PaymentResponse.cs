@@ -13,5 +13,7 @@ namespace ApelMusic.DTOs.Purchase
         public string? Image { get; set; }
 
         public string Name { get; set; } = string.Empty;
+
+        public DateTime Inactive { get; set; }
     }
 }
