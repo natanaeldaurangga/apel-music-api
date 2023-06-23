@@ -46,10 +46,11 @@ namespace ApelMusic.Database.Repositories
                            u.verified_at as verified_at,
                            u.inactive as inactive
                     FROM users u 
-                    WHERE (
+                    LEFT JOIN roles r ON r.id = u.role_id
+                    WHERE r.name = 'USER' AND (
                             (UPPER(u.full_name) LIKE UPPER(@Keyword)) 
                             OR (UPPER(u.email) LIKE UPPER(@Keyword))
-                          ) 
+                        ) 
                 ";
 
                 queryBuilder.Append(query);
@@ -60,7 +61,7 @@ namespace ApelMusic.Database.Repositories
                 }
 
                 // Menentukan Ascending/Descending
-                string direction = string.Equals(pageQuery.Direction, "ASC", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
+                string direction = string.Equals(pageQuery.Direction, "DESC", StringComparison.OrdinalIgnoreCase) ? "DESC" : "ASC";
 
                 // Menentukan kolom mana yang akan disorting
                 string columnSorted = string.IsNullOrEmpty(pageQuery.SortBy) ? "u.full_name" : pageQuery.SortBy;
@@ -81,8 +82,8 @@ namespace ApelMusic.Database.Repositories
                 var cmd = new SqlCommand(finalQuery, conn);
 
                 int offset = (pageQuery.CurrentPage - 1) * pageQuery.PageSize;
-                string keyword = "%" + pageQuery.Keyword + "%";
-                cmd.Parameters.AddWithValue("@Keyword", keyword);
+                string keyword = pageQuery.Keyword ?? "";
+                cmd.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
 
                 cmd.Parameters.AddWithValue("@OrderBy", pageQuery.SortBy);
 
