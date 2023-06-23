@@ -66,7 +66,7 @@ namespace ApelMusic.Services
         public async Task<byte[]> GetImageAsync(string fileName)
         {
             var filePath = Path.Combine(_env.ContentRootPath, _imagePath + fileName);
-            _logger.LogInformation("filePath: ", filePath);
+            // _logger.LogInformation("filePath: ", filePath);
             if (!File.Exists(filePath))
             {
                 throw new FileNotFoundException();

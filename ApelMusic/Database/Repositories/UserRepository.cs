@@ -42,10 +42,14 @@ namespace ApelMusic.Database.Repositories
                     SELECT u.id as user_id,
                            u.full_name as full_name,
                            u.email as email,
+                           u.created_at as created_at,
                            u.verified_at as verified_at,
                            u.inactive as inactive
                     FROM users u 
-                    WHERE (c.name LIKE @Name) 
+                    WHERE (
+                            (UPPER(u.full_name) LIKE UPPER(@Keyword)) 
+                            OR (UPPER(u.email) LIKE UPPER(@Keyword))
+                          ) 
                 ";
 
                 queryBuilder.Append(query);
@@ -59,7 +63,7 @@ namespace ApelMusic.Database.Repositories
                 string direction = string.Equals(pageQuery.Direction, "ASC", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
 
                 // Menentukan kolom mana yang akan disorting
-                string columnSorted = string.IsNullOrEmpty(pageQuery.SortBy) ? "c.full_name" : pageQuery.SortBy;
+                string columnSorted = string.IsNullOrEmpty(pageQuery.SortBy) ? "u.full_name" : pageQuery.SortBy;
 
                 // Membuat query untuk "sort by 'column' 'asc/desc'"
                 string orderByQuery = $"ORDER BY {columnSorted} {direction} ";
@@ -74,11 +78,11 @@ namespace ApelMusic.Database.Repositories
 
                 string finalQuery = queryBuilder.ToString();
 
-                var cmd = new SqlCommand(finalQuery);
+                var cmd = new SqlCommand(finalQuery, conn);
 
                 int offset = (pageQuery.CurrentPage - 1) * pageQuery.PageSize;
                 string keyword = "%" + pageQuery.Keyword + "%";
-                cmd.Parameters.AddWithValue("@Name", keyword);
+                cmd.Parameters.AddWithValue("@Keyword", keyword);
 
                 cmd.Parameters.AddWithValue("@OrderBy", pageQuery.SortBy);
 
@@ -98,7 +102,8 @@ namespace ApelMusic.Database.Repositories
                         {
                             Id = reader.GetGuid("user_id"),
                             FullName = reader.GetString("full_name"),
-                            Email = reader.GetString("email")
+                            Email = reader.GetString("email"),
+                            CreatedAt = reader.GetDateTime("created_at")
                         };
 
                         bool isVerifiedUser = !await reader.IsDBNullAsync(reader.GetOrdinal("verified_at"));
@@ -121,6 +126,7 @@ namespace ApelMusic.Database.Repositories
             }
             catch (System.Exception)
             {
+                await conn.CloseAsync();
                 throw;
             }
         }
@@ -248,6 +254,60 @@ namespace ApelMusic.Database.Repositories
         {
             return await FindUserByAsync("email", email);
         }
+
+        public async Task<List<User>> FindUserByIdAsync(Guid userId)
+        {
+            return await FindUserByAsync("u.id", userId.ToString());
+        }
+
+        #endregion
+
+        #region UPDATE USER
+        public async Task<int> UpdateUserTaskAsync(SqlConnection conn, SqlTransaction transaction, User user)
+        {
+            const string query = @"
+                UPDATE users
+                SET full_name = @FullName,
+                    inactive = @Inactive,
+                    password_hash = @PasswordHash,
+                    password_salt = @PasswordSalt
+                WHERE id = @UserId
+            ";
+
+            SqlCommand cmd = new(query, conn, transaction);
+            cmd.Parameters.AddWithValue("@FullName", user.FullName);
+            if (user.Inactive == null) cmd.Parameters.AddWithValue("@Inactive", DBNull.Value);
+            else cmd.Parameters.AddWithValue("@Inactive", user.Inactive);
+            cmd.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+            cmd.Parameters.AddWithValue("@PasswordSalt", user.PasswordSalt);
+            cmd.Parameters.AddWithValue("@UserId", user.Id);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> UpdateUserAsync(User user)
+        {
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                _ = await UpdateUserTaskAsync(conn, transaction, user);
+                transaction.Commit();
+                return 1;
+            }
+            catch (System.Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+                await conn.CloseAsync();
+            }
+        }
+
         #endregion
 
         #region SET INACTIVE

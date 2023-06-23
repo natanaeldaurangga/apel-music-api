@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ApelMusic.DTOs;
+using ApelMusic.DTOs.Admin;
 using ApelMusic.DTOs.Auth;
 using ApelMusic.Email;
 using ApelMusic.Email.TemplateModel;
 using ApelMusic.Entities;
 using ApelMusic.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApelMusic.Controllers
@@ -28,6 +31,7 @@ namespace ApelMusic.Controllers
             _config = config;
         }
 
+        // Untuk sementara tidak digunakan
         private async Task<int> SetRefreshToken(RefreshTokenResponse newRefreshToken, User user)
         {
             var cookieOptions = new CookieOptions
@@ -39,6 +43,76 @@ namespace ApelMusic.Controllers
             Response.Cookies.Append("refreshToken", newRefreshToken.Token!, cookieOptions);
             return 1;
         }
+
+        #region AREA ADMIN
+        [HttpGet("Admin"), Authorize("ADMIN")]
+        public async Task<IActionResult> UserPaged([FromQuery] PageQueryRequest request)
+        {
+            try
+            {
+                var result = await _authService.UserPagedAsync(request);
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpPut("Admin/EditUser/{userId}"), Authorize("ADMIN")]
+        public async Task<IActionResult> UpdateUserAsync([FromRoute] Guid userId, [FromBody] UserEditRequest request)
+        {
+            try
+            {
+                var result = await _authService.UpdateUserAsync(userId, request);
+                // if (result == 0) return NotFound();
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("Admin/GetUser/{userId}"), Authorize("ADMIN")]
+        public async Task<IActionResult> FindUserByIdAsync([FromRoute] Guid userId)
+        {
+            try
+            {
+                var result = await _authService.FindUserByIdAsync(userId);
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpPost("Admin/AddUser")]
+        public async Task<IActionResult> AddUserByAdmin([FromBody] CreateUserByAdminRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (await _authService.IsUserAlreadyUsed(request.Email!))
+            {
+                return Conflict("Email Already Registered.");
+            }
+
+            try
+            {
+                var token = await _authService.InsertUserByAdminAsync(request);
+                return Ok("User berhasil didaftarkan.");
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        #endregion
 
         [HttpPost("Registration")]
         public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
@@ -258,6 +332,19 @@ namespace ApelMusic.Controllers
             {
                 var result = await _authService.FindAllUserAsync();
                 return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("CheckSession"), Authorize]
+        public IActionResult CheckSession()
+        {
+            try
+            {
+                return Ok();
             }
             catch (System.Exception)
             {

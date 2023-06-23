@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,20 @@ namespace ApelMusic.Controllers
                 Guid userId = Guid.Parse(user.FindFirstValue("id"));
                 var result = await _cartService.InsertCartAsync(userId, request);
                 return Ok("Course berhasil dimasukkan ke dalam keranjang.");
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpPost("DeleteCart"), Authorize]
+        public async Task<IActionResult> DeleteCart([FromBody] DeleteCartRequest request)
+        {
+            try
+            {
+                var result = await _cartService.DeleteCartByIdsAsync(request.Ids);
+                return Ok("Item berhasil dihapus");
             }
             catch (System.Exception)
             {

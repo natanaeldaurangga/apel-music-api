@@ -28,6 +28,7 @@ namespace ApelMusic.Services
             _logger = logger;
         }
 
+        // TODO: Lanjut CRUD User
         public async Task<int> InsertSeedCourseAsync(SeedCourseRequest request)
         {
             try
@@ -35,7 +36,7 @@ namespace ApelMusic.Services
                 var course = new Course()
                 {
                     Id = request.Id,
-                    Name = request.Name,
+                    Name = request.Name!,
                     CategoryId = request.CategoryId,
                     Image = request.Image,
                     Description = request.Description,
@@ -129,7 +130,7 @@ namespace ApelMusic.Services
                 var course = new Course()
                 {
                     Id = Guid.NewGuid(),
-                    Name = request.Name,
+                    Name = request.Name!,
                     Image = imageName,
                     CategoryId = request.CategoryId,
                     Description = request.Description,

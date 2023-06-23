@@ -44,8 +44,8 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("Invoice/User"), Authorize]
-        public async Task<IActionResult> GetInvoicesUser([FromQuery] PageQueryRequest request)
+        [HttpPost("Direct"), Authorize]
+        public async Task<IActionResult> DirectMakePurchase([FromBody] DirectPurchaseRequest request)
         {
             // Memvalidasi request
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -53,8 +53,40 @@ namespace ApelMusic.Controllers
             Guid userId = Guid.Parse(user.FindFirstValue("id"));
             try
             {
+                var result = await _purchaseService.MakeDirectPurchaseAsync(userId, request);
+                if (result == 0) return NotFound();
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("Invoice/User"), Authorize]
+        public async Task<IActionResult> GetInvoicesUser([FromQuery] PageQueryRequest request)
+        {
+            // Memvalidasi request
+            ClaimsPrincipal user = HttpContext.User;
+            Guid userId = Guid.Parse(user.FindFirstValue("id"));
+            try
+            {
                 var wheres = new Dictionary<string, string>() { { "user_id", userId.ToString() } };
                 var result = await _purchaseService.InvoicesPagedAsync(request, wheres);
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("Invoice/Admin"), Authorize("ADMIN")]
+        public async Task<IActionResult> GetInvoicesAdmin([FromQuery] PageQueryRequest request)
+        {
+            try
+            {
+                var result = await _purchaseService.InvoicesPagedAsync(request);
                 return Ok(result);
             }
             catch (System.Exception)
@@ -76,5 +108,23 @@ namespace ApelMusic.Controllers
                 throw;
             }
         }
+
+        [HttpGet("PurchasedCourse"), Authorize]
+        public async Task<IActionResult> GetPurchasedCoruse([FromQuery] PageQueryRequest request)
+        {
+            ClaimsPrincipal user = HttpContext.User;
+            Guid userId = Guid.Parse(user.FindFirstValue("id"));
+            try
+            {
+                var wheres = new Dictionary<string, string>() { { "user_id", userId.ToString() } };
+                var result = await _purchaseService.PurchasedCoursesPagedAsync(request, wheres);
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
     }
 }

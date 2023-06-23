@@ -13,7 +13,7 @@ namespace ApelMusic.DTOs.Courses
         [MaxLength(255, ErrorMessage = "Maksimal jumlah karakter untuk field name adalah 255 karakter.")]
         public string? Name { get; set; }
 
-        public Guid? CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
 
         [FromForm(Name = "Image")]
         [AppFileExtensions(AllowMimeTypes = new string[] { "image/png", "image/jpeg" }, ErrorMessage = "Ekstensi yang didukung hanya jpeg dan png.")]

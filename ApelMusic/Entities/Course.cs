@@ -7,9 +7,9 @@ namespace ApelMusic.Entities
 {
     public class Course : BaseEntity
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
-        public Guid? CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
 
         public Category? Category { get; set; }
 

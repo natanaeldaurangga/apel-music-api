@@ -151,7 +151,7 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE = 'BASE TABLE' 
 AND TABLE_CATALOG = 'ApelMusicDB';
 
-EXEC sp_help 'shopping_cart';
+EXEC sp_help 'users_courses';
 
 SELECT * FROM roles;
 SELECT * FROM users;
@@ -180,7 +180,13 @@ JOIN (
 JOIN payment_methods pmt ON pmt.id = i.payment_method_id
 JOIN users u ON u.id = i.user_id;
 
-SELECT uc.course_id, c.name as course_name, uc.course_schedule, ct.name as category_name, uc.purchase_price 
+SELECT uc.course_id, 
+	   uc.user_id as user_id,
+	   c.name as course_name, 
+	   uc.course_schedule, 
+	   ct.id as category_id, 
+	   ct.name as category_name, 
+	   uc.purchase_price
 FROM users_courses uc
 LEFT JOIN courses c ON c.id = uc.course_id
 LEFT JOIN categories ct ON ct.id = c.category_id;
@@ -217,7 +223,7 @@ LEFT JOIN roles r ON u.role_id = r.id;
 
 UPDATE users SET verfied_at = GETDATE() WHERE verification_token = '';
 
-EXEC sp_help 'users_courses';
+EXEC sp_help 'users';
 
 SELECT sc.id as id,
     sc.user_id as user_id,
@@ -232,7 +238,7 @@ LEFT JOIN courses c ON c.id = sc.course_id;
 SELECT * FROM courses WHERE id != '7B85853C-3030-4188-A055-9C25BA60C1BE';
 SELECT * FROM courses;
 
-DROP TABLE coba_user;
+DROP TABLE shopping_cart;
 
 CREATE TABLE coba_user(
 	_ID int IDENTITY(1,1) not null,
@@ -248,4 +254,8 @@ SELECT * FROM shopping_cart;
 
 SELECT * FROM users;
 
+-- SELECT * FROM users WHERE cepo = 2;
+
 DELETE FROM users WHERE id = 'A5406F9C-4807-4169-8FC1-CBC26BB8CD04';
+
+SELECT * FROM users;

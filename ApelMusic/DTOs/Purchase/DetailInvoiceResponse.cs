@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace ApelMusic.DTOs.Purchase
 {
+    // Untuk daftar course pada invoice
     public class DetailInvoiceResponse
     {
         public Guid CourseId { get; set; }

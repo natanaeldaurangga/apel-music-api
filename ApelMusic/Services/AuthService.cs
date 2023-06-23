@@ -6,6 +6,8 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using ApelMusic.DTOs.Auth;
+using ApelMusic.DTOs.Admin;
+using ApelMusic.DTOs;
 
 namespace ApelMusic.Services
 {
@@ -60,7 +62,7 @@ namespace ApelMusic.Services
                 idClaim, nameClaim, emailClaim, roleClaim
             });
 
-            tokenDescriptor.Expires = DateTime.Now.AddHours(5);
+            tokenDescriptor.Expires = DateTime.Now.AddHours(6);
 
             tokenDescriptor.SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
 
@@ -83,6 +85,65 @@ namespace ApelMusic.Services
         {
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
         }
+
+        #region GET USER OLEH ADMIN
+
+        public async Task<PageQueryResponse<UserDataResponse>> UserPagedAsync(PageQueryRequest pageQuery)
+        {
+            var users = await _userRepo.UserPagedAsync(pageQuery);
+
+            List<UserDataResponse> usersResponse = users.ConvertAll(u =>
+            {
+                return new UserDataResponse()
+                {
+                    Id = u.Id,
+                    FullName = u.FullName!,
+                    Email = u.Email!,
+                    CreatedAt = u.CreatedAt,
+                    VerifiedAt = u.VerifiedAt,
+                    Inactive = u.Inactive
+                };
+            });
+
+            return new PageQueryResponse<UserDataResponse>()
+            {
+                CurrentPage = pageQuery.CurrentPage,
+                PageSize = pageQuery.PageSize,
+                Items = usersResponse
+            };
+        }
+
+        #endregion
+
+        #region EDIT USER OLEH ADMIN
+        public async Task<int> UpdateUserAsync(Guid userId, UserEditRequest request)
+        {
+            var users = await _userRepo.FindUserByIdAsync(userId);
+            if (users.Count == 0) return 0;
+            _logger.LogInformation("Length  User {}", users.Count);
+            var user = users[0];
+
+            user.FullName = request.FullName;
+            user.Inactive = request.Inactive;
+
+            return await _userRepo.UpdateUserAsync(user);
+        }
+
+        public async Task<int> ResetUserPassword(Guid userId, UserEditPasswordRequest request)
+        {
+            CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
+
+            var users = await _userRepo.FindUserByIdAsync(userId);
+            if (users.Count == 0) return 0;
+            var user = users[0];
+
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            return await _userRepo.UpdateUserAsync(user);
+        }
+
+        #endregion
 
         #region SERVICE RESET PASSWORD
         public async Task<string?> ResetPasswordRequestAsync(ResetPasswordEmailRequest request)
@@ -108,6 +169,35 @@ namespace ApelMusic.Services
         #endregion
 
         #region Adding User
+
+        public async Task<int> InsertUserByAdminAsync(CreateUserByAdminRequest request)
+        {
+            CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
+
+            var role = await _roleService.GetRoleByNameAsync("USER");
+
+            if (role != null)
+            {
+                User user = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Email = request.Email,
+                    FullName = request.FullName,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    RoleId = role.Id,
+                    Role = role,
+                    VerifiedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _ = await _userRepo.InsertUserAsync(user);
+                return 1;
+            }
+
+            return 0;
+        }
 
         public async Task<int> SeedRegisterUser(SeedUserRequest request)
         {
@@ -239,6 +329,23 @@ namespace ApelMusic.Services
         {
             var users = await _userRepo.FindUserByEmailAsync(email);
             return users;
+        }
+
+        public async Task<UserEditResponse?> FindUserByIdAsync(Guid userId)
+        {
+            var results = await _userRepo.FindUserByIdAsync(userId);
+
+            if (results.Count == 0) return null;
+
+            var result = results[0];
+
+            return new UserEditResponse()
+            {
+                Id = result.Id,
+                Email = result.Email!,
+                FullName = result.FullName!,
+                Inactive = result.Inactive
+            };
         }
 
     }

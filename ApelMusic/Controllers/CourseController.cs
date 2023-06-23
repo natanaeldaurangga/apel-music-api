@@ -115,7 +115,6 @@ namespace ApelMusic.Controllers
             }
             catch (System.Exception)
             {
-
                 throw;
             }
         }

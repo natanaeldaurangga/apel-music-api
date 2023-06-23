@@ -47,7 +47,7 @@ namespace ApelMusic.Database.Repositories
                                uc.course_schedule as course_schedule, 
                                ct.id as category_id, 
                                ct.name as category_name, 
-                               uc.purchase_price as purchase_price
+                               uc.purchase_price as purchase_price 
                         FROM users_courses uc
                         LEFT JOIN courses c ON c.id = uc.course_id
                         LEFT JOIN categories ct ON ct.id = c.category_id 
@@ -56,7 +56,7 @@ namespace ApelMusic.Database.Repositories
 
                 var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@Id", id);
-                // TODO: Lanjut untuk integrasi checkout ke FE
+                // TODO: Lanjut untuk integrasi checkout ke FE 
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                 {
                     while (reader.Read())
@@ -234,6 +234,34 @@ namespace ApelMusic.Database.Repositories
                 List<Guid> cartIds = carts.ConvertAll(cart => cart.Id);
 
                 _ = await _cartRepo.DeleteCartTaskAsync(conn, transaction, cartIds);
+                transaction.Commit();
+                return 1;
+            }
+            catch (System.Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+                await conn.CloseAsync();
+            }
+        }
+
+        public async Task<int> MakeDirectPurchase(Invoice invoice, List<UserCourses> userCourses)
+        {
+            using SqlConnection conn = new(this.ConnectionString);
+            await conn.OpenAsync();
+            SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                // Insert invoice, dan mengambil idnya
+                var invoiceId = await InsertInvoiceTaskAsync(conn, transaction, invoice);
+                userCourses.ForEach(course => course.InvoiceId = invoiceId); // Menyimpan invoice id pada tiap user courses
+
+                // Bulk insert user course
+                _ = await _userCourseRepo.BulkInsertUserCoursesTaskAsync(conn, transaction, userCourses);
                 transaction.Commit();
                 return 1;
             }

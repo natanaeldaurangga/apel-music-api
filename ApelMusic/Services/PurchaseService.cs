@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.Database.Repositories;
 using ApelMusic.DTOs;
+using ApelMusic.DTOs.Courses;
 using ApelMusic.DTOs.Purchase;
 using ApelMusic.Entities;
 
@@ -17,19 +18,38 @@ namespace ApelMusic.Services
 
         private readonly ShoppingCartRepository _cartRepo;
 
+        private readonly UsersCoursesRepository _userCourseRepo;
+
         private readonly ILogger<PurchaseService> _logger;
 
-        public PurchaseService(InvoiceRepository invoiceRepo, CourseRepository courseRepo, ShoppingCartRepository cartRepo, ILogger<PurchaseService> logger)
+        public PurchaseService(InvoiceRepository invoiceRepo, CourseRepository courseRepo, ShoppingCartRepository cartRepo, UsersCoursesRepository userCourseRepo, ILogger<PurchaseService> logger)
         {
             _invoiceRepo = invoiceRepo;
             _courseRepo = courseRepo;
             _cartRepo = cartRepo;
+            _userCourseRepo = userCourseRepo;
             _logger = logger;
         }
 
-        public async Task<List<DetailInvoiceResponse>> DetailInvoiceAsync(int invoiceId)
+        public async Task<InvoiceDetailResponse> DetailInvoiceAsync(int invoiceId)
         {
-            return await _invoiceRepo.GetInvoiceDetailAsync(invoiceId);
+            var dummyPageQueryRequest = new PageQueryRequest();
+            var wheres = new Dictionary<string, string>()
+            {
+                {"invoice_id", invoiceId.ToString()}
+            };
+            var invoices = await _invoiceRepo.InvoicesPagedAsync(dummyPageQueryRequest, wheres);
+            if (invoices.Count == 0) return null;
+            var invoice = invoices[0];
+            var courses = await _invoiceRepo.GetInvoiceDetailAsync(invoiceId);
+            return new InvoiceDetailResponse()
+            {
+                InvoiceId = invoice.Id,
+                InvoiceNumber = invoice.InvoiceNumber,
+                PurchaseDate = invoice.PurchaseDate,
+                TotalPrice = invoice.TotalPrice,
+                Courses = courses
+            };
         }
 
         public async Task<PageQueryResponse<InvoiceResponse>> InvoicesPagedAsync(PageQueryRequest request, IDictionary<string, string>? fields = null)
@@ -41,6 +61,45 @@ namespace ApelMusic.Services
                 CurrentPage = request.CurrentPage,
                 PageSize = request.PageSize,
                 Items = invoices
+            };
+        }
+
+        public async Task<int> MakeDirectPurchaseAsync(Guid userId, DirectPurchaseRequest request)
+        {
+            var courses = await _courseRepo.FindCourseById(request.CourseId);
+            if (courses.Count == 0) return 0;
+            var course = courses[0];
+
+            var userCourses = new List<UserCourses>()
+            {
+                new UserCourses()
+                {
+                    CourseId = course.Id,
+                    CourseSchedule = request.CourseSchedule,
+                    PurchasePrice = course.Price,
+                    UserId = userId
+                }
+            };
+
+            var invoice = new Invoice()
+            {
+                UserId = userId,
+                PaymentMethodId = request.PaymentMethodId,
+                PurchaseDate = DateTime.UtcNow
+            };
+
+            return await _invoiceRepo.MakeDirectPurchase(invoice, userCourses);
+        }
+
+        public async Task<PageQueryResponse<UserCourseResponse>> PurchasedCoursesPagedAsync(PageQueryRequest pageQuery, IDictionary<string, string>? fields = null)
+        {
+            var userCourses = await _userCourseRepo.PurchasedCoursesPagedAsync(pageQuery, fields);
+
+            return new PageQueryResponse<UserCourseResponse>()
+            {
+                CurrentPage = pageQuery.CurrentPage,
+                PageSize = pageQuery.PageSize,
+                Items = userCourses
             };
         }
 

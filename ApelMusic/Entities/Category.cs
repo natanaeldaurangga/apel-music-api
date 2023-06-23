@@ -7,7 +7,7 @@ namespace ApelMusic.Entities
 {
     public class Category : BaseEntity
     {
-        public string? TagName { get; set; }
+        public string TagName { get; set; }
 
         public string? Name { get; set; }
 
