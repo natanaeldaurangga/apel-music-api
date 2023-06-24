@@ -259,3 +259,5 @@ SELECT * FROM users;
 DELETE FROM users WHERE id = 'A5406F9C-4807-4169-8FC1-CBC26BB8CD04';
 
 SELECT * FROM users;
+
+DELETE FROM users WHERE full_name = 'vijay';

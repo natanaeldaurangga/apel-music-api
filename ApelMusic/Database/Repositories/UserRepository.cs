@@ -44,7 +44,7 @@ namespace ApelMusic.Database.Repositories
                            u.email as email,
                            u.created_at as created_at,
                            u.verified_at as verified_at,
-                           u.inactive as inactive
+                           u.inactive as user_inactive
                     FROM users u 
                     LEFT JOIN roles r ON r.id = u.role_id
                     WHERE r.name = 'USER' AND (
@@ -110,13 +110,13 @@ namespace ApelMusic.Database.Repositories
                         bool isVerifiedUser = !await reader.IsDBNullAsync(reader.GetOrdinal("verified_at"));
                         if (isVerifiedUser)
                         {
-                            user.Inactive = reader.GetDateTime("verified_at");
+                            user.VerifiedAt = reader.GetDateTime("verified_at");
                         }
 
-                        bool isActiveUser = await reader.IsDBNullAsync(reader.GetOrdinal("inactive"));
+                        bool isActiveUser = await reader.IsDBNullAsync(reader.GetOrdinal("user_inactive"));
                         if (!isActiveUser)
                         {
-                            user.Inactive = reader.GetDateTime("inactive");
+                            user.Inactive = reader.GetDateTime("user_inactive");
                         }
 
                         users.Add(user);
