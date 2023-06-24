@@ -18,5 +18,7 @@ namespace ApelMusic.DTOs.Purchase
         [Required(ErrorMessage = "Nama payment wajib diisi.")]
         [MaxLength(100, ErrorMessage = "Panjang karakter pada field nama tidak boleh melebihi 100 Karakter.")]
         public string? Name { get; set; }
+
+        public bool Inactive { get; set; }
     }
 }

@@ -14,6 +14,6 @@ namespace ApelMusic.DTOs.Purchase
 
         public string Name { get; set; } = string.Empty;
 
-        public DateTime Inactive { get; set; }
+        public DateTime? Inactive { get; set; }
     }
 }

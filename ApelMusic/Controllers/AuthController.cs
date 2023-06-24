@@ -65,7 +65,22 @@ namespace ApelMusic.Controllers
             try
             {
                 var result = await _authService.UpdateUserAsync(userId, request);
-                // if (result == 0) return NotFound();
+                if (result == 0) return NotFound();
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpPut("Admin/EditPassword/{userId}"), Authorize("ADMIN")]
+        public async Task<IActionResult> UpdateUserPasswordAsync([FromRoute] Guid userId, [FromBody] UserEditPasswordRequest request)
+        {
+            try
+            {
+                var result = await _authService.ResetUserPassword(userId, request);
+                if (result == 0) return NotFound();
                 return Ok(result);
             }
             catch (System.Exception)

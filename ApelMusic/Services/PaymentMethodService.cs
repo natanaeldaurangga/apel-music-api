@@ -38,6 +38,7 @@ namespace ApelMusic.Services
                 payment.Image = await _imageServices.UploadImageAsync(request.Image!, folder: "Upload");
             }
             payment.Name = request.Name ?? payment.Name;
+            payment.Inactive = request.Inactive ? DateTime.UtcNow : null;
             payment.UpdatedAt = DateTime.UtcNow;
 
             return await _paymentRepo.UpdatePaymentAsync(payment);
@@ -75,15 +76,18 @@ namespace ApelMusic.Services
         {
             var result = await _paymentRepo.FindAllPaymentAsync();
 
-            return result.ConvertAll(pmt =>
+            var payments = result.ConvertAll(pmt =>
             {
                 return new PaymentResponse()
                 {
                     Id = pmt.Id,
                     Image = pmt.Image,
-                    Name = pmt.Name
+                    Name = pmt.Name,
+                    Inactive = pmt.Inactive
                 };
             });
+
+            return payments;
         }
 
         public async Task<List<PaymentResponse>> FindActivePaymentAsync()
@@ -111,7 +115,8 @@ namespace ApelMusic.Services
             {
                 Id = result.Id,
                 Image = result.Image,
-                Name = result.Name
+                Name = result.Name,
+                Inactive = result.Inactive
             };
         }
 

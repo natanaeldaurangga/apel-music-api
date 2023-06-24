@@ -124,7 +124,7 @@ namespace ApelMusic.Services
             var user = users[0];
 
             user.FullName = request.FullName;
-            user.Inactive = request.Inactive;
+            user.Inactive = request.Inactive ? DateTime.UtcNow : null;
 
             return await _userRepo.UpdateUserAsync(user);
         }
@@ -168,7 +168,7 @@ namespace ApelMusic.Services
         }
         #endregion
 
-        #region Adding User
+        #region Tambah user oleh admin
 
         public async Task<int> InsertUserByAdminAsync(CreateUserByAdminRequest request)
         {
