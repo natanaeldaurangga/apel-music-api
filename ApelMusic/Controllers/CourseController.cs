@@ -7,6 +7,7 @@ using ApelMusic.DTOs.Courses;
 using ApelMusic.Services;
 using Microsoft.AspNetCore.Mvc;
 using ApelMusic.DTOs;
+using System.Security.Claims;
 
 namespace ApelMusic.Controllers
 {
@@ -78,10 +79,10 @@ namespace ApelMusic.Controllers
                 };
 
                 var result = await _courseService.PaginateCourseAsync(request, fields, exceptedFields);
-                if (result!.Items.Count == 0)
-                {
-                    return NotFound();
-                }
+                // if (result!.Items.Count == 0)
+                // {
+                //     return NotFound();
+                // }
                 return Ok(result);
             }
             catch (System.Exception)
@@ -95,7 +96,9 @@ namespace ApelMusic.Controllers
         {
             try
             {
-                var result = await _courseService.FindCourseById(courseId);
+                ClaimsPrincipal user = HttpContext.User;
+                Guid userId = Guid.Parse(user.FindFirstValue("id"));
+                var result = await _courseService.FindCourseById(courseId, userId);
                 if (result.Count == 0) return NotFound();
                 return Ok(result[0]);
             }

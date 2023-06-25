@@ -30,7 +30,7 @@ namespace ApelMusic.Services
                 var category = new Category()
                 {
                     Id = request.Id,
-                    TagName = request.TagName,
+                    TagName = request.TagName ?? "",
                     Name = request.Name,
                     Image = request.Image,
                     BannerImage = request.BannerImage,
@@ -82,7 +82,7 @@ namespace ApelMusic.Services
                 var category = new Category()
                 {
                     Id = Guid.NewGuid(),
-                    TagName = request.TagName,
+                    TagName = request.TagName!,
                     Name = request.Name,
                     Image = imageName,
                     BannerImage = bannerName,

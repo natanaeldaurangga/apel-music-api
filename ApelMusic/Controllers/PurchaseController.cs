@@ -49,6 +49,13 @@ namespace ApelMusic.Controllers
         {
             // Memvalidasi request
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            int alreadyPurchased = await _purchaseService.AlreadyPurchasedAsync(request);
+            if (alreadyPurchased > 0)
+            {
+                return Conflict("Kelas yang sama dengan jadwal yang sama sudah pernah anda beli.");
+            }
+
             ClaimsPrincipal user = HttpContext.User;
             Guid userId = Guid.Parse(user.FindFirstValue("id"));
             try
@@ -125,6 +132,5 @@ namespace ApelMusic.Controllers
                 throw;
             }
         }
-
     }
 }

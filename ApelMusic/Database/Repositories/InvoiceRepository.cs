@@ -262,6 +262,20 @@ namespace ApelMusic.Database.Repositories
 
                 // Bulk insert user course
                 _ = await _userCourseRepo.BulkInsertUserCoursesTaskAsync(conn, transaction, userCourses);
+
+                // Delete item yang sudah ada di cart, tapi didirect purchase
+                if (userCourses.Count > 0) // cek dulu apakah user course ada
+                {
+                    var userCourse = userCourses[0];
+                    var cart = new CreateCartRequest()
+                    {
+                        CourseId = userCourse.CourseId,
+                        CourseSchedule = userCourse.CourseSchedule
+                    };
+
+                    _ = await _cartRepo.DeleteByDirectPurchaseTaskAsync(conn, transaction, cart);
+                }
+
                 transaction.Commit();
                 return 1;
             }

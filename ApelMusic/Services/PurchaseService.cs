@@ -31,8 +31,9 @@ namespace ApelMusic.Services
             _logger = logger;
         }
 
-        public async Task<InvoiceDetailResponse> DetailInvoiceAsync(int invoiceId)
+        public async Task<InvoiceDetailResponse?> DetailInvoiceAsync(int invoiceId)
         {
+            // Karena cuman mau itemnya ajh, jadi ngasih request dummy
             var dummyPageQueryRequest = new PageQueryRequest();
             var wheres = new Dictionary<string, string>()
             {
@@ -66,7 +67,7 @@ namespace ApelMusic.Services
 
         public async Task<int> MakeDirectPurchaseAsync(Guid userId, DirectPurchaseRequest request)
         {
-            var courses = await _courseRepo.FindCourseById(request.CourseId);
+            var courses = await _courseRepo.FindCourseByIdAsync(request.CourseId, userId);
             if (courses.Count == 0) return 0;
             var course = courses[0];
 
@@ -101,6 +102,11 @@ namespace ApelMusic.Services
                 PageSize = pageQuery.PageSize,
                 Items = userCourses
             };
+        }
+
+        public async Task<int> AlreadyPurchasedAsync(DirectPurchaseRequest request)
+        {
+            return await _userCourseRepo.AlreadyPurchasedAsync(request);
         }
 
         public async Task<int> MakePurchaseAsync(Guid userId, CheckoutRequest request)

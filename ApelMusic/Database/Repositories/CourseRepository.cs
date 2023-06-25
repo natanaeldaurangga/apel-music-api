@@ -268,7 +268,7 @@ namespace ApelMusic.Database.Repositories
         }
 
         // Method untuk find course dengan menggunakan column field pair (WHERE column = field)
-        private async Task<List<Course>> FindCoursesByAsync(IDictionary<string, string>? fields = null)
+        public async Task<List<Course>> FindCourseByIdAsync(Guid courseId, Guid? userId = null)
         {
             var courses = new List<Course>();
             using SqlConnection conn = new(ConnectionString);
@@ -290,23 +290,10 @@ namespace ApelMusic.Database.Repositories
                            ct.tag_name as category_tag_name
                     FROM courses c
                     LEFT JOIN categories ct ON category_id = ct.id 
+                    WHERE c.id = @CourseId
                 ";
 
                 queryBuilder.Append(query1);
-
-                if (fields != null)
-                {
-                    queryBuilder.Append(" WHERE ");
-
-                    for (int i = 0; i < fields.Count; i++)
-                    {
-                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
-                        queryBuilder.Append(colVal.Key).Append(" = @Value").Append(i);
-
-                        if (i != fields.Count - 1) queryBuilder.Append(" AND ");
-                        else queryBuilder.Append(' ');
-                    }
-                }
 
                 queryBuilder.Append(';');
 
@@ -314,14 +301,7 @@ namespace ApelMusic.Database.Repositories
 
                 var cmd = new SqlCommand(finalQuery, conn);
 
-                if (fields != null)
-                {
-                    for (int i = 0; i < fields.Count; i++)
-                    {
-                        KeyValuePair<string, string> colVal = fields.ElementAt(i);
-                        cmd.Parameters.AddWithValue("@Value" + i, colVal.Value);
-                    }
-                }
+                cmd.Parameters.AddWithValue("@CourseId", courseId);
 
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                 {
@@ -339,7 +319,7 @@ namespace ApelMusic.Database.Repositories
                             UpdatedAt = reader.GetDateTime("updated_at")
                         };
 
-                        course.CourseSchedules = await _scheduleRepo.GetScheduleByCourseIdAsync(course.Id);
+                        course.CourseSchedules = await _scheduleRepo.GetScheduleByCourseIdAsync(course.Id, userId);
 
                         var category = new Category()
                         {
@@ -364,20 +344,6 @@ namespace ApelMusic.Database.Repositories
             {
                 throw;
             }
-        }
-
-        public async Task<List<Course>> FindAllCoursesAsync()
-        {
-            return await FindCoursesByAsync();
-        }
-
-        public async Task<List<Course>> FindCourseById(Guid courseId)
-        {
-            var fields = new Dictionary<string, string>()
-            {
-                {"c.id", courseId.ToString()}
-            };
-            return await FindCoursesByAsync(fields);
         }
 
         #endregion
