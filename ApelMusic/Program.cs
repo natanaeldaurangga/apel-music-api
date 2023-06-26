@@ -101,7 +101,7 @@ builder.Services.AddAuthorization(options =>
 string allowedOrigin = builder.Configuration.GetValue<string>("CORs:AllowedOrigin");
 
 builder.Services.AddCors(options => options.AddPolicy(name: "AllowedOrigins",
-    builder => builder.WithOrigins(allowedOrigin, "http://localhost:2031").AllowAnyHeader().AllowAnyMethod()
+    builder => builder.WithOrigins(allowedOrigin).AllowAnyHeader().AllowAnyMethod()
 ));
 #endregion
 
