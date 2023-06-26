@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ApelMusic.Entities;
 using ApelMusic.DTOs;
 using ApelMusic.DTOs.Courses;
+using ApelMusic.DTOs.Purchase;
 
 namespace ApelMusic.Database.Repositories
 {
@@ -176,6 +177,28 @@ namespace ApelMusic.Database.Repositories
             return 1;
         }
 
-        // public async Task<List
+        public async Task<int> AlreadyPurchasedAsync(DirectPurchaseRequest request)
+        {
+            const string query = @"
+                SELECT COUNT(*) FROM users_courses uc
+                WHERE uc.course_id = @CourseId AND uc.course_schedule = @CourseSchedule
+            ";
+
+            using SqlConnection conn = new(ConnectionString);
+            try
+            {
+                await conn.OpenAsync();
+                SqlCommand cmd = new(query, conn);
+                cmd.Parameters.AddWithValue("@CourseId", request.CourseId);
+                cmd.Parameters.AddWithValue("@CourseSchedule", request.CourseSchedule);
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
+            }
+            catch (System.Exception)
+            {
+                await conn.CloseAsync();
+                throw;
+            }
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace ApelMusic.Validations
             {
                 if (file.Length > _maxFileSize)
                 {
-                    return new ValidationResult($"The file size should not exceed {_maxFileSize} bytes.");
+                    return new ValidationResult(ErrorMessage);
                 }
             }
 

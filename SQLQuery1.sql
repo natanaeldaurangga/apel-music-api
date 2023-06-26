@@ -193,6 +193,8 @@ LEFT JOIN categories ct ON ct.id = c.category_id;
 
 SELECT * FROM shopping_cart;
 
+SELECT * FROM users_courses;
+
 SELECT COUNT(uc.course_id) AS quantity, SUM(uc.purchase_price) AS total_price, uc.invoice_id
 FROM users_courses uc
 GROUP BY uc.invoice_id;
@@ -261,3 +263,48 @@ DELETE FROM users WHERE id = 'A5406F9C-4807-4169-8FC1-CBC26BB8CD04';
 SELECT * FROM users;
 
 DELETE FROM users WHERE full_name = 'vijay';
+
+USE ApelMusicDB;
+
+SELECT * FROM course_schedules cs 
+WHERE cs.course_id = '82fa065d-fc7d-4b6b-90dd-ee20b715a9bc';
+
+SELECT cs.id, uc.user_id, cs.course_id, cs.course_date FROM course_schedules cs
+LEFT JOIN users_courses uc ON cs.course_id = uc.course_id
+WHERE cs.course_id = '82fa065d-fc7d-4b6b-90dd-ee20b715a9bc'
+GROUP BY uc.user_id;
+
+-- TODO: Cara select schedule course yang belum pernah dibeli user
+SELECT t.id, t.course_id, t.course_date FROM (
+	SELECT * FROM course_schedules cs WHERE cs.course_id = '82fa065d-fc7d-4b6b-90dd-ee20b715a9bc'
+) t
+JOIN (
+	SELECT * FROM users_courses uc WHERE uc.user_id = 'AA801318-DB44-46CE-BD9A-1F6BDF0317B6'
+) u
+ON u.course_id = t.course_id;
+
+SELECT * FROM course_schedules cs 
+WHERE 
+	cs.course_id = '57775872-c6d9-4685-9474-371d81c942be'
+AND
+	cs.course_date  NOT IN (
+		SELECT course_schedule 
+		FROM users_courses cs 
+		WHERE 
+			cs.user_id = 'ad508f8e-ecb0-4a91-a54a-66132ddef03f'	
+			AND cs.course_id = '57775872-c6d9-4685-9474-371d81c942be'
+	);
+
+SELECT * FROM users_courses uc WHERE uc.user_id = 'fdc25f2f-e626-4df2-8e6f-294ceb2184fd';
+
+SELECT course_schedule 
+FROM users_courses cs 
+WHERE 
+	cs.user_id = 'AA801318-DB44-46CE-BD9A-1F6BDF0317B6'	
+	AND cs.course_id = '82fa065d-fc7d-4b6b-90dd-ee20b715a9bc';
+
+-- AA801318-DB44-46CE-BD9A-1F6BDF0317B6
+-- Drummer for kids: 1e210d2c-508f-44f6-853b-4d3e076e3ae0
+
+SELECT * FROM invoices;
+SELECT * FROM users;

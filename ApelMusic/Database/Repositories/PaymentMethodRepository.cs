@@ -64,7 +64,6 @@ namespace ApelMusic.Database.Repositories
                 queryBuilder.Append(';');
 
                 string finalQuery = queryBuilder.ToString();
-                _logger.LogInformation("finalQuery: {}", finalQuery);
 
                 var cmd = new SqlCommand(finalQuery, conn);
 

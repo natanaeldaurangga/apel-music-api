@@ -17,7 +17,7 @@ namespace ApelMusic.DTOs.Courses
 
         [FromForm(Name = "Image")]
         [AppFileExtensions(AllowMimeTypes = new string[] { "image/png", "image/jpeg" }, ErrorMessage = "Ekstensi yang didukung hanya jpeg dan png.")]
-        [FileSize(5 * 1024 * 1024, ErrorMessage = "Maksimal ukuran file adalah 5 MB.")]
+        [FileSize(3 * 1024 * 1024, ErrorMessage = "Maksimal ukuran file adalah 3 MB.")]
         public IFormFile? Image { get; set; }
 
         public string? Description { get; set; }

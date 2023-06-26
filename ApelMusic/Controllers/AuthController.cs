@@ -139,7 +139,7 @@ namespace ApelMusic.Controllers
 
             if (await _authService.IsUserAlreadyUsed(request.Email!))
             {
-                return Conflict("Email Already Used.");
+                return Conflict("Email sudah digunakan.");
             }
 
             // Mengambil base url dari project
@@ -149,29 +149,30 @@ namespace ApelMusic.Controllers
             {
                 var token = await _authService.RegisterNewUserAsync(request);
 
-                if (!string.IsNullOrEmpty(token) && !string.IsNullOrWhiteSpace(token))
+                if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token))
                 {
-                    var emailVerification = new EmailVerificationModel()
-                    {
-                        EmailAddress = request.Email,
-                        Url = verificationUrl + token,
-                        VerificationToken = token
-                    };
+                    return NotFound();
+                }
 
-                    var emailAddresses = new List<string>
+                var emailVerification = new EmailVerificationModel()
+                {
+                    EmailAddress = request.Email,
+                    Url = verificationUrl + token,
+                    VerificationToken = token
+                };
+
+                var emailAddresses = new List<string>
                     {
                         request.Email!
                     };
 
-                    var model = new EmailModel(emailAddresses, "Verifikasi Email",
-                        _emailService.GetEmailTemplate("VerifyEmail", emailVerification)
-                    );
+                var model = new EmailModel(emailAddresses, "Verifikasi Email",
+                    _emailService.GetEmailTemplate("VerifyEmail", emailVerification)
+                );
 
-                    bool sended = await _emailService.SendAsync(model, new CancellationToken());
+                bool sended = await _emailService.SendAsync(model, new CancellationToken());
 
-                    return Ok("Akun anda sudah terdaftar, Silahkan cek email anda untuk melakukan verifikasi");
-                }
-                return NotFound();
+                return Ok("Akun anda sudah terdaftar, Silahkan cek email anda untuk melakukan verifikasi");
             }
             catch (System.Exception)
             {
@@ -286,8 +287,8 @@ namespace ApelMusic.Controllers
         [HttpGet("GetResetPasswordToken/{token}")]
         public IActionResult RedirectToResetPasswordForm([FromRoute] string token)
         {
-            string baseUrl = _config.GetValue<string>("CORs:AllowedOrigin");
-            string resetPassword = _config.GetValue<string>("CORs:ResetPassword");
+            string baseUrl = _config.GetValue<string>("CORs:AllowedOrigin"); // Mengambil data dari appsettings.json
+            string resetPassword = _config.GetValue<string>("CORs:ResetPassword"); // Mengambil data dari appsettings.json
             return Redirect(baseUrl + resetPassword + token);
         }
 

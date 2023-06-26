@@ -33,6 +33,12 @@ namespace ApelMusic.Controllers
                 return BadRequest(ModelState);
             }
 
+            int checkInCart = await _cartService.CheckAlreadyInCart(request);
+            if (checkInCart > 0)
+            {
+                return Conflict("Produk yang sama dengan schedule yang sama sudah ada pada cart");
+            }
+
             try
             {
                 ClaimsPrincipal user = HttpContext.User;

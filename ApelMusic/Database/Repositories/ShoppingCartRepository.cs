@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.Entities;
 using System.Data;
+using ApelMusic.DTOs.Purchase;
 
 namespace ApelMusic.Database.Repositories
 {
@@ -27,6 +28,31 @@ namespace ApelMusic.Database.Repositories
         }
 
         #region METHODs untuk find shopping cart
+
+        public async Task<int> CheckAlreadyInCartAsync(CreateCartRequest request)
+        {
+            const string query = @"
+                SELECT COUNT(*) FROM shopping_cart sc
+                WHERE sc.course_id = @CourseId AND sc.course_schedule = @CourseSchedule
+            ";
+
+            using SqlConnection conn = new(ConnectionString);
+            try
+            {
+                await conn.OpenAsync();
+                SqlCommand cmd = new(query, conn);
+                cmd.Parameters.AddWithValue("@CourseId", request.CourseId);
+                cmd.Parameters.AddWithValue("@CourseSchedule", request.CourseSchedule);
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
+            }
+            catch (System.Exception)
+            {
+                await conn.CloseAsync();
+                throw;
+            }
+        }
+
 
         // Mencari cart berdasarkan satu column
         public async Task<List<ShoppingCart>> FindCartByAsync(string column = "", string value = "", List<Guid>? values = null)
@@ -134,6 +160,22 @@ namespace ApelMusic.Database.Repositories
         #endregion
 
         #region METHODs untuk delete shopping cart
+
+        // Task untuk menghapus saat item yang sudah ada dikeranjang tiba tiba didirect purchase
+        public async Task<int> DeleteByDirectPurchaseTaskAsync(SqlConnection conn, SqlTransaction transaction, CreateCartRequest request)
+        {
+            const string query = @"
+                DELETE FROM shopping_cart WHERE 
+                course_id = @CourseId
+                AND course_schedule = @CourseSchedule
+            ";
+
+            SqlCommand cmd = new(query, conn, transaction);
+            cmd.Parameters.AddWithValue("@CourseId", request.CourseId);
+            cmd.Parameters.AddWithValue("@CourseSchedule", request.CourseSchedule);
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
         public async Task<int> DeleteCartTaskAsync(SqlConnection conn, SqlTransaction transaction, List<Guid> ids)
         {
             var queryBuilder = new StringBuilder();

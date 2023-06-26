@@ -15,8 +15,6 @@ namespace ApelMusic.Services
     {
         private readonly CourseRepository _courseRepo;
 
-        private readonly CourseScheduleService _scheduleService;
-
         private readonly ImageServices _imageServices;
 
         private readonly ILogger<CourseService> _logger;
@@ -91,14 +89,9 @@ namespace ApelMusic.Services
             };
         }
 
-        public async Task<List<Course>> GetAllCoursesAsync()
+        public async Task<List<Course>> FindCourseById(Guid courseId, Guid? userId = null)
         {
-            return await _courseRepo.FindAllCoursesAsync();
-        }
-
-        public async Task<List<Course>> FindCourseById(Guid courseId)
-        {
-            return await _courseRepo.FindCourseById(courseId);
+            return await _courseRepo.FindCourseByIdAsync(courseId, userId);
         }
 
         public async Task<List<CourseSummaryResponse>> FindCourseByIds(List<Guid> ids)

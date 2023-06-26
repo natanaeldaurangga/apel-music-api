@@ -43,10 +43,9 @@ namespace ApelMusic.Services
 
             var cartsResponseAsync = results.ConvertAll(async (cart) =>
             {
-                var courses = await _courseRepo.FindCourseById(cart.CourseId);
+                var courses = await _courseRepo.FindCourseByIdAsync(cart.CourseId, userId);
                 if (courses.Count == 0)
                 {
-                    _logger.LogInformation("Haaahh kosongg?");
                     cart.Course = null;
                 };
                 var course = courses[0];
@@ -86,6 +85,13 @@ namespace ApelMusic.Services
         {
             _ = await _cartRepo.DeleteCartAsync(cartIds);
             return 1;
+        }
+
+        // public async Task<int> Delete
+
+        public async Task<int> CheckAlreadyInCart(CreateCartRequest request)
+        {
+            return await _cartRepo.CheckAlreadyInCartAsync(request);
         }
     }
 }
