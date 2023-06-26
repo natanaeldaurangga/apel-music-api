@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.Database.Migrations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApelMusic.Controllers
@@ -18,7 +19,7 @@ namespace ApelMusic.Controllers
             _migrations = migrations;
         }
 
-        [HttpPost]
+        [HttpPost, Authorize("DISABLE")]
         public async Task<IActionResult> Migrate()
         {
             try
@@ -32,7 +33,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpPut("AddConstraint")]
+        [HttpPut("AddConstraint"), Authorize("DISABLE")]
         public async Task<IActionResult> AddCosntraints()
         {
             try
@@ -46,7 +47,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpDelete, Authorize("DISABLE")]
         public async Task<IActionResult> DropAllTables()
         {
             try
@@ -61,7 +62,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpDelete("DropAllConstraints")]
+        [HttpDelete("DropAllConstraints"), Authorize("DISABLE")]
         public async Task<IActionResult> DropAllConstraints()
         {
             try

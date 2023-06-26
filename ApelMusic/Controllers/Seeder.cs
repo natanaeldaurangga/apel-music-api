@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.Database.Seeds;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApelMusic.Controllers
@@ -27,7 +28,7 @@ namespace ApelMusic.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost, Authorize("DISABLE")]
         public async Task<IActionResult> Seed()
         {
             try

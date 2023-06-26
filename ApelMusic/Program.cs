@@ -5,6 +5,7 @@ using ApelMusic.Database.Seeds;
 using ApelMusic.Email;
 using ApelMusic.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -90,6 +91,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(options =>
 {
     // AddPolicy(Nama Policy, requireRole(Role dari jwtnya))
+    options.AddPolicy("DISABLE", policy => policy.RequireRole("DISABLE"));
     options.AddPolicy("ADMIN", policy => policy.RequireRole("ADMIN"));
     options.AddPolicy("USER", policy => policy.RequireRole("USER"));
 });
@@ -99,7 +101,7 @@ builder.Services.AddAuthorization(options =>
 string allowedOrigin = builder.Configuration.GetValue<string>("CORs:AllowedOrigin");
 
 builder.Services.AddCors(options => options.AddPolicy(name: "AllowedOrigins",
-    builder => builder.WithOrigins(allowedOrigin).AllowAnyHeader().AllowAnyMethod()
+    builder => builder.WithOrigins(allowedOrigin, "http://localhost:2031").AllowAnyHeader().AllowAnyMethod()
 ));
 #endregion
 
@@ -111,6 +113,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "Files")),
+    RequestPath = "/Files"
+});
 
 app.UseCors("AllowedOrigins");
 

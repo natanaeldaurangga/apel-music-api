@@ -34,7 +34,7 @@ namespace ApelMusic.Controllers
             var result = await _roleRepo.GetByNameAsync("USER");
             if (result?.Count > 0)
             {
-                return Ok(result[0]);
+                return Ok(_env.ContentRootPath);
             }
             else
             {

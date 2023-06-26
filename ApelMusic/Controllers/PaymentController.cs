@@ -56,7 +56,7 @@ namespace ApelMusic.Controllers
             {
                 var result = await _paymentService.UpdatePaymentAsync(paymentId, request);
                 if (result == 0) return NotFound();
-                return Ok("Data berhasildi update");
+                return Ok("Data berhasil diupdate");
             }
             catch (System.Exception)
             {
