@@ -305,3 +305,6 @@ WHERE
 
 -- AA801318-DB44-46CE-BD9A-1F6BDF0317B6
 -- Drummer for kids: 1e210d2c-508f-44f6-853b-4d3e076e3ae0
+
+SELECT * FROM invoices;
+SELECT * FROM users;
