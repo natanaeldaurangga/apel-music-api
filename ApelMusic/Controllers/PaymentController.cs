@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.DTOs.Purchase;
 using ApelMusic.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApelMusic.Controllers
@@ -23,7 +24,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost]
-        [Consumes("multipart/form-data")]
+        [Consumes("multipart/form-data"), Authorize("ADMIN")]
         public async Task<IActionResult> InsertPaymentMethod([FromForm] CreatePaymentRequest request)
         {
             if (!ModelState.IsValid)
@@ -44,7 +45,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPut("{paymentId}")]
-        [Consumes("multipart/form-data")]
+        [Consumes("multipart/form-data"), Authorize("ADMIN")]
         public async Task<IActionResult> UpdatePaymentMethod([FromRoute] Guid paymentId, [FromForm] CreatePaymentRequest request)
         {
             if (!ModelState.IsValid)
@@ -64,7 +65,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("ForAdmin")]
+        [HttpGet("ForAdmin"), Authorize("ADMIN")]
         public async Task<IActionResult> FindAllPaymentMethod()
         {
             try
@@ -79,7 +80,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("ForUser")]
+        [HttpGet("ForUser"), Authorize]
         public async Task<IActionResult> FindAllPaymentMethodUser()
         {
             try
@@ -94,7 +95,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}"), Authorize]
         public async Task<IActionResult> FindPaymentById([FromRoute] Guid id)
         {
             try
@@ -109,7 +110,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpPut("Inactive/{id}")]
+        [HttpPut("Inactive/{id}"), Authorize("ADMIN")]
         public async Task<IActionResult> SetInactivePayment([FromRoute] Guid id, [FromQuery] bool inactive)
         {
             try

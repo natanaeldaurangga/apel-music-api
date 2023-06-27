@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApelMusic.DTOs.Courses;
 using ApelMusic.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApelMusic.Controllers
@@ -23,7 +24,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost]
-        [Consumes("multipart/form-data")]
+        [Consumes("multipart/form-data"), Authorize("ADMIN")]
         public async Task<IActionResult> InsertCategory([FromForm] CreateCategoryRequest request)
         {
             if (!ModelState.IsValid)

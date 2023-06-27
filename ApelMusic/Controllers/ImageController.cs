@@ -38,10 +38,9 @@ namespace ApelMusic.Controllers
 
                 return File(imageData, contentType);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
-                return NotFound("Gambar tidak ditemukan.");
-                // throw;
+                return Ok("Gambar tidak ditemukan.");
             }
             catch (Exception e)
             {

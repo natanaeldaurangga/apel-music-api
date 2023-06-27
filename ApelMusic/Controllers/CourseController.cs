@@ -8,6 +8,7 @@ using ApelMusic.Services;
 using Microsoft.AspNetCore.Mvc;
 using ApelMusic.DTOs;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApelMusic.Controllers
 {
@@ -26,7 +27,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost]
-        [Consumes("multipart/form-data")]
+        [Consumes("multipart/form-data"), Authorize("ADMIN")]
         public async Task<IActionResult> InsertCourse([FromForm] CreateCourseRequest request)
         {
             if (!ModelState.IsValid)
@@ -63,7 +64,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("GroupByCategory/{categoryId}")]
+        [HttpGet("GroupByCategory/{categoryId}"), Authorize]
         public async Task<IActionResult> GetCoursesByCategory([FromQuery] PageQueryRequest request, [FromRoute] Guid categoryId, [FromQuery] Guid exceptedCourseId)
         {
             try
@@ -91,7 +92,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("{courseId}")]
+        [HttpGet("{courseId}"), Authorize]
         public async Task<IActionResult> GetCourseById([FromRoute] Guid courseId)
         {
             try
@@ -108,7 +109,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpPost("GetByIds")]
+        [HttpPost("GetByIds"), Authorize]
         public async Task<IActionResult> GetCourseByIds([FromBody] List<Guid> courseIds)
         {
             try

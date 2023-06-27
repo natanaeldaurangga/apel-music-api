@@ -25,7 +25,7 @@ namespace ApelMusic.Controllers
             _logger = logger;
         }
 
-        [HttpPost, Authorize]
+        [HttpPost, Authorize, Authorize("USER")]
         public async Task<IActionResult> InsertCart([FromBody] CreateCartRequest request)
         {
             if (!ModelState.IsValid)
@@ -52,7 +52,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpPost("DeleteCart"), Authorize]
+        [HttpPost("DeleteCart"), Authorize, Authorize]
         public async Task<IActionResult> DeleteCart([FromBody] DeleteCartRequest request)
         {
             try
@@ -82,7 +82,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpPost("FindByIds")]
+        [HttpPost("FindByIds"), Authorize]
         public async Task<IActionResult> FindCartById([FromBody] List<Guid> ids)
         {
             try

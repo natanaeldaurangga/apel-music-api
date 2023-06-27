@@ -19,12 +19,14 @@ namespace ApelMusic.Controllers
 
         private readonly IWebHostEnvironment _env;
 
-        public Test(RoleRepository roleRepo, PaymentMethodRepository paymentRepo, IWebHostEnvironment env)
+        private readonly IConfiguration _config;
+
+        public Test(RoleRepository roleRepo, PaymentMethodRepository paymentRepo, IWebHostEnvironment env, IConfiguration config)
         {
             _roleRepo = roleRepo;
             _paymentRepo = paymentRepo;
             _env = env;
-
+            _config = config;
         }
 
         [HttpGet]
@@ -39,6 +41,21 @@ namespace ApelMusic.Controllers
             else
             {
                 return NotFound();
+            }
+        }
+
+        [HttpGet("CekCors")]
+        public async Task<IActionResult> CekCors()
+        {
+            try
+            {
+                var result = _config.GetValue<string>("CORs:AllowedOrigin");
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+
+                throw;
             }
         }
 
