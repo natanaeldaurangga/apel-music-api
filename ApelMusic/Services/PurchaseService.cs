@@ -104,9 +104,9 @@ namespace ApelMusic.Services
             };
         }
 
-        public async Task<int> AlreadyPurchasedAsync(DirectPurchaseRequest request)
+        public async Task<int> AlreadyPurchasedAsync(Guid userId, DirectPurchaseRequest request)
         {
-            return await _userCourseRepo.AlreadyPurchasedAsync(request);
+            return await _userCourseRepo.AlreadyPurchasedAsync(userId, request);
         }
 
         public async Task<int> MakePurchaseAsync(Guid userId, CheckoutRequest request)

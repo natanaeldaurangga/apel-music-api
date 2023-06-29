@@ -11,7 +11,7 @@ namespace ApelMusic.DTOs.Purchase
     public class CreatePaymentRequest
     {
         [FromForm(Name = "Image")]
-        [AppFileExtensions(AllowMimeTypes = new string[] { "image/png", "image/jpeg" }, ErrorMessage = "Ekstensi yang didukung hanya jpeg dan png.")]
+        [AppFileExtensions(AllowMimeTypes = new string[] { "image/png", "image/jpeg", "image/svg+xml" }, ErrorMessage = "Ekstensi yang didukung hanya jpeg dan png.")]
         [FileSize(1 * 1024 * 1024, ErrorMessage = "Maksimal ukuran file adalah 1 MB.")]
         public IFormFile? Image { get; set; }
 

@@ -31,6 +31,7 @@ namespace ApelMusic.Services
             // _logger.LogInformation("payment ketemu");
 
             var payment = payments[0];
+            // Jika gambar tidak null maka kita ganti gambar lama, jika null kita masih pake gambar lama
             if (request.Image != null)
             {
                 var oldImageName = payment.Image!.Replace("%5C", "\\"); // Mengganti separator untuk url dengan \\

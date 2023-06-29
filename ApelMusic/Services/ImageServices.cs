@@ -52,14 +52,14 @@ namespace ApelMusic.Services
         public bool DeleteImage(string fileName)
         {
             var filePath = Path.Combine(_env.ContentRootPath, _imagePath + fileName);
-            if (!File.Exists(filePath))
+            if (File.Exists(filePath))
             {
                 // _logger.LogInformation("Gambar tidak ketemu bro {}", filePath);
-                throw new FileNotFoundException();
+                // throw new FileNotFoundException();
+                File.Delete(filePath);
             }
             // _logger.LogInformation("Gambar ketemu bro {}", filePath);
 
-            File.Delete(filePath);
             return true;
         }
 

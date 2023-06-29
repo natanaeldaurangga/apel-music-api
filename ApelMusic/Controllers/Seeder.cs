@@ -28,7 +28,7 @@ namespace ApelMusic.Controllers
             _logger = logger;
         }
 
-        [HttpPost, Authorize("DISABLE")]
+        [HttpPost]
         public async Task<IActionResult> Seed()
         {
             try

@@ -50,14 +50,14 @@ namespace ApelMusic.Controllers
             // Memvalidasi request
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            int alreadyPurchased = await _purchaseService.AlreadyPurchasedAsync(request);
+            ClaimsPrincipal user = HttpContext.User;
+            Guid userId = Guid.Parse(user.FindFirstValue("id"));
+            int alreadyPurchased = await _purchaseService.AlreadyPurchasedAsync(userId, request);
             if (alreadyPurchased > 0)
             {
                 return Conflict("Kelas yang sama dengan jadwal yang sama sudah pernah anda beli.");
             }
 
-            ClaimsPrincipal user = HttpContext.User;
-            Guid userId = Guid.Parse(user.FindFirstValue("id"));
             try
             {
                 var result = await _purchaseService.MakeDirectPurchaseAsync(userId, request);
@@ -117,7 +117,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpGet("PurchasedCourse"), Authorize]
-        public async Task<IActionResult> GetPurchasedCoruse([FromQuery] PageQueryRequest request)
+        public async Task<IActionResult> GetPurchasedCourse([FromQuery] PageQueryRequest request)
         {
             ClaimsPrincipal user = HttpContext.User;
             Guid userId = Guid.Parse(user.FindFirstValue("id"));

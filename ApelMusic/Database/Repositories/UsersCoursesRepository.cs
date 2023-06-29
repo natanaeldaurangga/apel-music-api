@@ -177,11 +177,12 @@ namespace ApelMusic.Database.Repositories
             return 1;
         }
 
-        public async Task<int> AlreadyPurchasedAsync(DirectPurchaseRequest request)
+        public async Task<int> AlreadyPurchasedAsync(Guid userId, DirectPurchaseRequest request)
         {
             const string query = @"
                 SELECT COUNT(*) FROM users_courses uc
                 WHERE uc.course_id = @CourseId AND uc.course_schedule = @CourseSchedule
+                AND uc.user_id = @UserId
             ";
 
             using SqlConnection conn = new(ConnectionString);
@@ -191,6 +192,7 @@ namespace ApelMusic.Database.Repositories
                 SqlCommand cmd = new(query, conn);
                 cmd.Parameters.AddWithValue("@CourseId", request.CourseId);
                 cmd.Parameters.AddWithValue("@CourseSchedule", request.CourseSchedule);
+                cmd.Parameters.AddWithValue("@UserId", userId);
                 var result = await cmd.ExecuteScalarAsync();
                 return Convert.ToInt32(result);
             }

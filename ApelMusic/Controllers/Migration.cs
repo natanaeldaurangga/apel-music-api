@@ -19,7 +19,7 @@ namespace ApelMusic.Controllers
             _migrations = migrations;
         }
 
-        [HttpPost, Authorize("DISABLE")]
+        [HttpPost]
         public async Task<IActionResult> Migrate()
         {
             try
@@ -33,7 +33,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpPut("AddConstraint"), Authorize("DISABLE")]
+        [HttpPut("AddConstraint")]
         public async Task<IActionResult> AddCosntraints()
         {
             try
@@ -47,7 +47,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpDelete, Authorize("DISABLE")]
+        [HttpDelete]
         public async Task<IActionResult> DropAllTables()
         {
             try
@@ -62,7 +62,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpDelete("DropAllConstraints"), Authorize("DISABLE")]
+        [HttpDelete("DropAllConstraints")]
         public async Task<IActionResult> DropAllConstraints()
         {
             try

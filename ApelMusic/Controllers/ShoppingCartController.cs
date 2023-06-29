@@ -17,11 +17,14 @@ namespace ApelMusic.Controllers
     {
         private readonly ShoppingCartService _cartService;
 
+        private readonly PurchaseService _purchaseService;
+
         private readonly ILogger<ShoppingCartController> _logger;
 
-        public ShoppingCartController(ShoppingCartService cartService, ILogger<ShoppingCartController> logger)
+        public ShoppingCartController(ShoppingCartService cartService, PurchaseService purchaseService, ILogger<ShoppingCartController> logger)
         {
             _cartService = cartService;
+            _purchaseService = purchaseService;
             _logger = logger;
         }
 
@@ -32,6 +35,8 @@ namespace ApelMusic.Controllers
             {
                 return BadRequest(ModelState);
             }
+            ClaimsPrincipal user = HttpContext.User;
+            Guid userId = Guid.Parse(user.FindFirstValue("id"));
 
             int checkInCart = await _cartService.CheckAlreadyInCart(request);
             if (checkInCart > 0)
@@ -39,10 +44,20 @@ namespace ApelMusic.Controllers
                 return Conflict("Produk yang sama dengan schedule yang sama sudah ada pada cart");
             }
 
+            var dummyDirectPurchase = new DirectPurchaseRequest()
+            {
+                CourseSchedule = request.CourseSchedule,
+                CourseId = request.CourseId
+            };
+
+            int checkInClass = await _purchaseService.AlreadyPurchasedAsync(userId, dummyDirectPurchase);
+            if (checkInClass > 0)
+            {
+                return Conflict("Produk yang sama dengan schedule yang sama sudah pernah anda beli");
+            }
+
             try
             {
-                ClaimsPrincipal user = HttpContext.User;
-                Guid userId = Guid.Parse(user.FindFirstValue("id"));
                 var result = await _cartService.InsertCartAsync(userId, request);
                 return Ok("Course berhasil dimasukkan ke dalam keranjang.");
             }
