@@ -8,13 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ApelMusic.DTOs.Courses
 {
-    public class CreateCourseRequest
+    public class UpdateCourseRequest
     {
-        [Required]
         [MaxLength(255, ErrorMessage = "Maksimal jumlah karakter untuk field name adalah 255 karakter.")]
         public string? Name { get; set; }
 
-        [Required]
         public Guid CategoryId { get; set; }
 
         [FromForm(Name = "Image")]
@@ -24,11 +22,7 @@ namespace ApelMusic.DTOs.Courses
 
         public string? Description { get; set; }
 
-        [Required]
         [Range(0, double.MaxValue, ErrorMessage = "Harga tidak boleh di bawah 0.")]
         public decimal Price { get; set; }
-
-        [Required]
-        public List<DateTime> Schedules { get; set; } = new();
     }
 }

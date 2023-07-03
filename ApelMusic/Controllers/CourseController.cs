@@ -1,8 +1,3 @@
-using System.Net;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ApelMusic.DTOs.Courses;
 using ApelMusic.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +19,24 @@ namespace ApelMusic.Controllers
         {
             _courseService = courseService;
             _logger = logger;
+        }
+
+        // TODO: Lanjut tes update course
+        [HttpPut("{courseId}"), Authorize("ADMIN")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateCourse([FromRoute] Guid courseId, [FromForm] UpdateCourseRequest request)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _courseService.UpdateCourseAsync(courseId, request);
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
         }
 
         [HttpPost]
@@ -64,7 +77,7 @@ namespace ApelMusic.Controllers
             }
         }
 
-        [HttpGet("GroupByCategory/{categoryId}"), Authorize]
+        [HttpGet("GroupByCategory/{categoryId}")]
         public async Task<IActionResult> GetCoursesByCategory([FromQuery] PageQueryRequest request, [FromRoute] Guid categoryId, [FromQuery] Guid exceptedCourseId)
         {
             try

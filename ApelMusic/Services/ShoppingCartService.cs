@@ -56,7 +56,7 @@ namespace ApelMusic.Services
                     Category = new CategorySummaryResponse()
                     {
                         Id = course.Id,
-                        Name = course.Category!.TagName
+                        TagName = course.Category!.TagName
                     },
                     Price = course.Price,
                     ImageName = course.Image!
@@ -87,11 +87,19 @@ namespace ApelMusic.Services
             return 1;
         }
 
-        // public async Task<int> Delete
-
-        public async Task<int> CheckAlreadyInCart(CreateCartRequest request)
+        public async Task<int> CountItemInCartAsync(Guid userId)
         {
-            return await _cartRepo.CheckAlreadyInCartAsync(request);
+            return await _cartRepo.CountItemInCartAsync(userId);
+        }
+
+        public async Task<int> IsScheduleConflictAsync(Guid userId, DateTime courseSchedule)
+        {
+            return await _cartRepo.IsScheduleConflictAsync(userId, courseSchedule);
+        }
+
+        public async Task<int> CheckAlreadyInCart(Guid userId, CreateCartRequest request)
+        {
+            return await _cartRepo.CheckAlreadyInCartAsync(userId, request);
         }
     }
 }

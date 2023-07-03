@@ -9,6 +9,8 @@ namespace ApelMusic.DTOs.Courses
     {
         public Guid Id { get; set; }
 
-        public string Name { get; set; } = string.Empty;
+        public string? TagName { get; set; }
+
+        public string? Image { get; set; }
     }
 }

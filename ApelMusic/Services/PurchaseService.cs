@@ -109,6 +109,11 @@ namespace ApelMusic.Services
             return await _userCourseRepo.AlreadyPurchasedAsync(userId, request);
         }
 
+        public async Task<int> IsScheduleConflictAsync(Guid userId, DateTime courseSchedule)
+        {
+            return await _userCourseRepo.IsScheduleConflictAsync(userId, courseSchedule);
+        }
+
         public async Task<int> MakePurchaseAsync(Guid userId, CheckoutRequest request)
         {
             // TODO: tambahkan user id pada where clause di cart repo, supaya makin secure

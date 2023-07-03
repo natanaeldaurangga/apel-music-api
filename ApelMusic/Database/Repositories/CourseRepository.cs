@@ -118,7 +118,6 @@ namespace ApelMusic.Database.Repositories
             }
             catch (System.Exception)
             {
-
                 throw;
             }
         }
@@ -146,8 +145,12 @@ namespace ApelMusic.Database.Repositories
                            ct.tag_name as category_tag_name
                     FROM courses c 
                     LEFT JOIN categories ct ON ct.id = c.category_id 
-                    WHERE (UPPER(c.name) LIKE UPPER(@Name)) 
+                    WHERE (
+                        (UPPER(c.name) LIKE UPPER(@Keyword)) OR 
+                        (UPPER(ct.tag_name) LIKE UPPER(@Keyword))
+                        ) 
                 ";
+
                 queryBuilder.Append(query);
 
                 // Build Query untuk pasangan column dan value (EQUAL)
@@ -199,7 +202,7 @@ namespace ApelMusic.Database.Repositories
 
                 int offset = (pageQuery.CurrentPage - 1) * pageQuery.PageSize;
                 string keyword = "%" + pageQuery.Keyword + "%";
-                cmd.Parameters.AddWithValue("@Name", keyword ?? "");
+                cmd.Parameters.AddWithValue("@Keyword", keyword ?? "");
 
                 cmd.Parameters.AddWithValue("@OrderBy", pageQuery.SortBy ?? "name");
 
@@ -319,7 +322,11 @@ namespace ApelMusic.Database.Repositories
                             UpdatedAt = reader.GetDateTime("updated_at")
                         };
 
-                        course.CourseSchedules = await _scheduleRepo.GetScheduleByCourseIdAsync(course.Id, userId);
+                        // Menggunakan userId untuk memfilter beberapa schedule yang sudah pernah dibeli oleh users
+                        if (userId != null) // jika null maka courseschedule tidak akan diisi
+                        {
+                            course.CourseSchedules = await _scheduleRepo.GetScheduleByCourseIdAsync(course.Id, userId);
+                        }
 
                         var category = new Category()
                         {
@@ -345,6 +352,60 @@ namespace ApelMusic.Database.Repositories
                 throw;
             }
         }
+        #endregion
+
+        #region Method untuk update course
+        public async Task<int> UpdateCourseTaskAsync(SqlConnection conn, SqlTransaction transaction, Course course)
+        {
+            const string query = @"
+                UPDATE courses
+                SET name = @Name,
+                    category_id = @CategoryId,
+                    image = @Image,
+                    description = @Description,
+                    price = @Price,
+                    updated_at = @UpdatedAt
+                WHERE id = @CourseId;
+            ";
+
+            SqlCommand cmd = new(query, conn, transaction);
+            cmd.Parameters.AddWithValue("@CourseId", course.Id);
+            cmd.Parameters.AddWithValue("@Name", course.Name);
+            cmd.Parameters.AddWithValue("@CategoryId", course.CategoryId);
+            cmd.Parameters.AddWithValue("@Image", course.Image);
+            cmd.Parameters.AddWithValue("@Price", course.Price);
+            cmd.Parameters.AddWithValue("@UpdatedAt", DateTime.UtcNow);
+
+            if (course.Description == null)
+                cmd.Parameters.AddWithValue("@Description", "");
+            else
+                cmd.Parameters.AddWithValue("@Description", course.Description);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> UpdateCourseAsync(Course course)
+        {
+            using SqlConnection conn = new(ConnectionString);
+            await conn.OpenAsync();
+            SqlTransaction transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+            try
+            {
+                _ = await UpdateCourseTaskAsync(conn, transaction, course);
+                transaction.Commit();
+                return 1;
+            }
+            catch (System.Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+                await conn.CloseAsync();
+            }
+        }
 
         #endregion
 
@@ -366,13 +427,9 @@ namespace ApelMusic.Database.Repositories
             cmd.Parameters.AddWithValue("@UpdatedAt", course.UpdatedAt);
 
             if (course.Description == null)
-            {
                 cmd.Parameters.AddWithValue("@Description", "");
-            }
             else
-            {
                 cmd.Parameters.AddWithValue("@Description", course.Description);
-            }
 
             return await cmd.ExecuteNonQueryAsync();
         }

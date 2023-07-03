@@ -27,13 +27,60 @@ namespace ApelMusic.Database.Repositories
             this.ConnectionString = _config.GetConnectionString("DefaultConnection");
         }
 
-        #region METHODs untuk find shopping cart
+        #region METHODs untuk select dari shopping cart
 
-        public async Task<int> CheckAlreadyInCartAsync(CreateCartRequest request)
+        public async Task<int> CountItemInCartAsync(Guid userId)
         {
             const string query = @"
                 SELECT COUNT(*) FROM shopping_cart sc
-                WHERE sc.course_id = @CourseId AND sc.course_schedule = @CourseSchedule
+                WHERE sc.user_id = @UserId
+            ";
+
+            using SqlConnection conn = new(ConnectionString);
+            try
+            {
+                await conn.OpenAsync();
+                SqlCommand cmd = new(query, conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<int> IsScheduleConflictAsync(Guid userId, DateTime courseSchedule)
+        {
+            const string query = @"
+                SELECT COUNT(*) FROM shopping_cart sc
+                WHERE sc.user_id = @UserId AND sc.course_schedule = @CourseSchedule
+            ";
+
+            using SqlConnection conn = new(ConnectionString);
+            try
+            {
+                await conn.OpenAsync();
+                SqlCommand cmd = new(query, conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@CourseSchedule", courseSchedule);
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<int> CheckAlreadyInCartAsync(Guid userId, CreateCartRequest request)
+        {
+            const string query = @"
+                SELECT COUNT(*) FROM shopping_cart sc
+                WHERE sc.course_id = @CourseId 
+                    AND sc.course_schedule = @CourseSchedule
+                    AND sc.user_id = @UserId
             ";
 
             using SqlConnection conn = new(ConnectionString);
@@ -43,6 +90,7 @@ namespace ApelMusic.Database.Repositories
                 SqlCommand cmd = new(query, conn);
                 cmd.Parameters.AddWithValue("@CourseId", request.CourseId);
                 cmd.Parameters.AddWithValue("@CourseSchedule", request.CourseSchedule);
+                cmd.Parameters.AddWithValue("@UserId", userId);
                 var result = await cmd.ExecuteScalarAsync();
                 return Convert.ToInt32(result);
             }

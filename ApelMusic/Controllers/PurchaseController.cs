@@ -45,7 +45,7 @@ namespace ApelMusic.Controllers
         }
 
         [HttpPost("Direct"), Authorize]
-        public async Task<IActionResult> DirectMakePurchase([FromBody] DirectPurchaseRequest request)
+        public async Task<IActionResult> MakeDirectPurchase([FromBody] DirectPurchaseRequest request)
         {
             // Memvalidasi request
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -56,6 +56,12 @@ namespace ApelMusic.Controllers
             if (alreadyPurchased > 0)
             {
                 return Conflict("Kelas yang sama dengan jadwal yang sama sudah pernah anda beli.");
+            }
+
+            int isScheduleConflict = await _purchaseService.IsScheduleConflictAsync(userId, request.CourseSchedule);
+            if (isScheduleConflict > 0)
+            {
+                return Conflict("Kelas pada jadwal tersebut sudah ada.");
             }
 
             try

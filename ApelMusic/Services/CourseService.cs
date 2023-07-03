@@ -26,43 +26,35 @@ namespace ApelMusic.Services
             _logger = logger;
         }
 
-        // TODO: Lanjut CRUD User
         public async Task<int> InsertSeedCourseAsync(SeedCourseRequest request)
         {
-            try
+            var course = new Course()
             {
-                var course = new Course()
+                Id = request.Id,
+                Name = request.Name!,
+                CategoryId = request.CategoryId,
+                Image = request.Image,
+                Description = request.Description,
+                Price = request.Price,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            course.CourseSchedules = request.Schedules.ConvertAll(schedule =>
+            {
+                return new CourseSchedule()
                 {
-                    Id = request.Id,
-                    Name = request.Name!,
-                    CategoryId = request.CategoryId,
-                    Image = request.Image,
-                    Description = request.Description,
-                    Price = request.Price,
+                    Id = Guid.NewGuid(),
+                    CourseId = course.Id,
+                    CourseDate = schedule,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
                 };
+            });
 
-                course.CourseSchedules = request.Schedules.ConvertAll(schedule =>
-                {
-                    return new CourseSchedule()
-                    {
-                        Id = Guid.NewGuid(),
-                        CourseId = course.Id,
-                        CourseDate = schedule,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                    };
-                });
+            _logger.LogInformation("Schedule Length: ", course.CourseSchedules.Count);
 
-                _logger.LogInformation("Schedule Length: ", course.CourseSchedules.Count);
-
-                return await _courseRepo.InsertCourseAsync(course);
-            }
-            catch (System.Exception)
-            {
-                throw;
-            }
+            return await _courseRepo.InsertCourseAsync(course);
         }
 
         public async Task<PageQueryResponse<CourseSummaryResponse>?> PaginateCourseAsync(PageQueryRequest request, IDictionary<string, string>? fields = null, IDictionary<string, string>? exceptedFields = null)
@@ -75,7 +67,7 @@ namespace ApelMusic.Services
                 {
                     Id = course.Id,
                     Name = course.Name!,
-                    Category = new CategorySummaryResponse() { Id = course.Category!.Id, Name = course.Category!.TagName! },
+                    Category = new CategorySummaryResponse() { Id = course.Category!.Id, TagName = course.Category!.TagName! },
                     ImageName = course.Image!,
                     Price = course.Price
                 };
@@ -108,49 +100,68 @@ namespace ApelMusic.Services
                     Category = new CategorySummaryResponse()
                     {
                         Id = course.Category!.Id,
-                        Name = course.Category!.Name!
+                        TagName = course.Category!.Name!
                     }
                 };
             });
         }
 
-        public async Task<int> InsertCourseAsync(CreateCourseRequest request)
+        public async Task<int> UpdateCourseAsync(Guid courseId, UpdateCourseRequest request)
         {
             try
             {
-                var imageName = await _imageServices.UploadImageAsync(request.Image!, folder: "Upload");
+                var courses = await _courseRepo.FindCourseByIdAsync(courseId);
+                if (courses.Count == 0) return 0;
+                var course = courses[0];
+                course.Name = request.Name!;
+                course.CategoryId = request.CategoryId;
+                course.Price = request.Price;
 
-                var course = new Course()
+                // handle image
+                if (request.Image != null)
                 {
-                    Id = Guid.NewGuid(),
-                    Name = request.Name!,
-                    Image = imageName,
-                    CategoryId = request.CategoryId,
-                    Description = request.Description,
-                    Price = request.Price,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                    var oldImage = course.Image!.Replace("%5C", "\\"); // Mengganti separator untuk url dengan separator biasa untuk mencari folder
+                    _imageServices.DeleteImage(oldImage);
+                    course.Image = await _imageServices.UploadImageAsync(request.Image!, folder: "Upload");
+                }
 
-                course.CourseSchedules = request.Schedules.ConvertAll(schedule =>
-                {
-                    return new CourseSchedule()
-                    {
-                        Id = Guid.NewGuid(),
-                        CourseId = course.Id,
-                        CourseDate = schedule,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                    };
-                });
-
-                return await _courseRepo.InsertCourseAsync(course);
+                return await _courseRepo.UpdateCourseAsync(course);
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 throw;
             }
         }
 
+        public async Task<int> InsertCourseAsync(CreateCourseRequest request)
+        {
+            var imageName = await _imageServices.UploadImageAsync(request.Image!, folder: "Upload");
+
+            var course = new Course()
+            {
+                Id = Guid.NewGuid(),
+                Name = request.Name!,
+                Image = imageName,
+                CategoryId = request.CategoryId,
+                Description = request.Description,
+                Price = request.Price,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            course.CourseSchedules = request.Schedules.ConvertAll(schedule =>
+            {
+                return new CourseSchedule()
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = course.Id,
+                    CourseDate = schedule,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+            });
+
+            return await _courseRepo.InsertCourseAsync(course);
+        }
     }
 }

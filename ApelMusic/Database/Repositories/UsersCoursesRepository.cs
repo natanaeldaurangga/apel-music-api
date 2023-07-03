@@ -177,6 +177,30 @@ namespace ApelMusic.Database.Repositories
             return 1;
         }
 
+        public async Task<int> IsScheduleConflictAsync(Guid userId, DateTime courseSchedule)
+        {
+            const string query = @"
+                SELECT COUNT(*) FROM users_courses uc
+                WHERE uc.user_id = @UserId AND uc.course_schedule = @CourseSchedule
+            ";
+
+            using SqlConnection conn = new(ConnectionString);
+            try
+            {
+                await conn.OpenAsync();
+                SqlCommand cmd = new(query, conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@CourseSchedule", courseSchedule);
+
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<int> AlreadyPurchasedAsync(Guid userId, DirectPurchaseRequest request)
         {
             const string query = @"

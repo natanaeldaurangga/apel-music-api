@@ -61,11 +61,20 @@ namespace ApelMusic.Services
             }
         }
 
-        public async Task<List<Category>> GetAllCategoriesAsync()
+        public async Task<List<CategorySummaryResponse>> GetAllCategoriesAsync()
         {
             try
             {
-                return await _categoryRepo.FindAllCategoriesAsync();
+                var rawCategories = await _categoryRepo.FindAllCategoriesAsync();
+                return rawCategories.ConvertAll(c =>
+                {
+                    return new CategorySummaryResponse()
+                    {
+                        Id = c.Id,
+                        TagName = c.TagName,
+                        Image = c.Image
+                    };
+                });
             }
             catch (System.Exception)
             {

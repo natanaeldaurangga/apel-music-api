@@ -118,6 +118,32 @@ namespace ApelMusic.Database.Repositories
 
         #endregion
 
+        #region Method untuk Update Category
+        public async Task<int> UpdateCategoryTaskAsync(SqlConnection conn, SqlTransaction transaction, Category category)
+        {
+            const string query = @"
+                UPDATE categories
+                SET tag_name = @TagName,
+                    name = @Name,
+                    image = @Image,
+                    banner_image = @BannerImage,
+                    category_description = @CategoryDescription,
+                    updated_at = @UpdatedAt
+                WHERE id = @CategoryId
+            ";
+
+            SqlCommand cmd = new(query, conn, transaction);
+            cmd.Parameters.AddWithValue("@TagName", category.Name);
+            cmd.Parameters.AddWithValue("@Name", category.Name);
+            cmd.Parameters.AddWithValue("@Image", category.Image);
+            cmd.Parameters.AddWithValue("@BannerImage", category.BannerImage);
+            cmd.Parameters.AddWithValue("@CategoryDescription", category.CategoryDescription ?? "");
+            cmd.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+        #endregion
+
         #region Method Untuk Insert Category
         public async Task<int> InsertCategoryTaskAsync(SqlConnection conn, SqlTransaction transaction, Category category)
         {

@@ -35,13 +35,20 @@ namespace ApelMusic.Controllers
             {
                 return BadRequest(ModelState);
             }
+
             ClaimsPrincipal user = HttpContext.User;
             Guid userId = Guid.Parse(user.FindFirstValue("id"));
 
-            int checkInCart = await _cartService.CheckAlreadyInCart(request);
+            int checkInCart = await _cartService.CheckAlreadyInCart(userId, request);
             if (checkInCart > 0)
             {
                 return Conflict("Produk yang sama dengan schedule yang sama sudah ada pada cart");
+            }
+
+            int isScheduleConflict = await _cartService.IsScheduleConflictAsync(userId, request.CourseSchedule);
+            if (isScheduleConflict > 0)
+            {
+                return Conflict("Kelas dengan jadwal yang sama sudah ada pada keranjang.");
             }
 
             var dummyDirectPurchase = new DirectPurchaseRequest()
@@ -89,6 +96,22 @@ namespace ApelMusic.Controllers
                 ClaimsPrincipal user = HttpContext.User;
                 Guid userId = Guid.Parse(user.FindFirstValue("id"));
                 var result = await _cartService.FindCartByUserIdAsync(userId);
+                return Ok(result);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("Count"), Authorize]
+        public async Task<IActionResult> CountItems()
+        {
+            try
+            {
+                ClaimsPrincipal user = HttpContext.User;
+                Guid userId = Guid.Parse(user.FindFirstValue("id"));
+                var result = await _cartService.CountItemInCartAsync(userId);
                 return Ok(result);
             }
             catch (System.Exception)
